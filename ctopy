@@ -120,30 +120,30 @@ def ctopy(input, debug=0):
     state = "text"
     for i in range(len(input)):
         if state == "text":
-            if input[i] == '"':
-                if debug:
+            if input[i] == '"' and (i == 0 or input[i-1] != '\\'):
+                if debug >= 2:
                     print "String literal starts at %d" % i
                 boundaries.append(i)
                 state = "stringliteral"
             elif input[i:i+2] == "/*":
-                if debug:
+                if debug >= 2:
                     print "Closed comment starts at %d" % (i-1)
                 boundaries.append(i)
                 state = "closedcomment"
             elif input[i:i+2] == "//":
-                if debug:
-                    print "String starts at %d" % i
+                if debug >= 2:
+                    print "Open comment starts at %d" % i
                 boundaries.append(i)
                 state = "opencomment"
         elif state == "stringliteral":
-            if input[i] == '"':
-                if debug:
+            if input[i] == '"' and (i == 0 or input[i-1] != '\\'):
+                if debug >= 2:
                     print "String ends at %d" % i
                 boundaries.append(i+1)
                 state = "text"
         elif state == "closedcomment":
             if input[i:i+2] == "*/":
-                if debug:
+                if debug >= 2:
                     print "closed comment ends at %d" % (i+1)
                 boundaries.append(i+2)
                 state = "text"                
@@ -163,25 +163,30 @@ def ctopy(input, debug=0):
         import pprint
         pp = pprint.PrettyPrinter(indent=4)
         pp.pprint(regions)
-    for i in range(len(regions)):
-        if regions[i][:2] == "/*":
-            if regions[i].count("\n") <= 1:		# winged comment
-                regions[i] = "#" + regions[i][2:-2]
-            elif re.search("/\*+\n", regions[i]):	# boxed comment
-                regions[i] = re.sub(r"\n([ \t]*)", r"\n# ", regions[i])
-                regions[i] = re.sub(r"^([ \t]*)/\*+", r"\1#", regions[i])
-                regions[i] = re.sub(r"\n([ \t]*)# \*+/", r"\n\1#", regions[i])
-            else:
-                regions[i] = regions[i].replace("/*", "#")
-                regions[i] = regions[i].replace("\n*/", "\n#")
-                regions[i] = regions[i].replace("*/", "")
-                regions[i] = regions[i].replace("\n *", "\n")
-                regions[i] = regions[i].replace("\n", "\n#")
-        elif regions[i][:2] == "//":
-            regions[i] = "#" + regions[i][2:]
-        elif regions[i][0] != '"':
-            for (s, t) in transformations:
-                regions[i] = re.sub(s % shorthands, t, regions[i], re.M)
+    try:
+        for i in range(len(regions)):
+            if regions[i][:2] == "/*":
+                if regions[i].count("\n") <= 1:		# winged comment
+                    regions[i] = "#" + regions[i][2:-2]
+                elif re.search("/\*+\n", regions[i]):	# boxed comment
+                    regions[i] = re.sub(r"\n([ \t]*) \*", r"\n\1# ", regions[i])
+                    regions[i] = re.sub(r"^([ \t]*)/\*+", r"\1#", regions[i])
+                    regions[i] = re.sub(r"\n([ \t]*)\*+/$", r"\n\1#", regions[i])
+                    regions[i] = re.sub(r"\n([ \t]*)(?!#)", r"\n\1# ", regions[i])
+                else:
+                    regions[i] = regions[i].replace("/*", "#")
+                    regions[i] = regions[i].replace("\n*/", "\n#")
+                    regions[i] = regions[i].replace("*/", "")
+                    regions[i] = regions[i].replace("\n *", "\n")
+                    regions[i] = regions[i].replace("\n", "\n#")
+            elif regions[i][:2] == "//":
+                regions[i] = "#" + regions[i][2:]
+            elif regions[i][0] != '"':
+                for (s, t) in transformations:
+                    regions[i] = re.sub(s % shorthands, t, regions[i], re.M)
+    except IndexError:
+        sys.stderr.write("ctopy: pathological sting literal at %d.\n" % boundaries[i])
+        raise SystemExit, 1
     if debug:
         print "Import checks begin"
     importlist = []
