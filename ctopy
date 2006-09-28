@@ -1,0 +1,210 @@
+#!/usr/bin/env python
+"""
+ctopy -- a quick and dirty C-to-Python translator
+
+Relies on the fact that C and Python have fundamentally similar syntax
+and control structures, and C is normally indented in a way that indicates
+its block structure.
+
+Stages:
+
+First, define a set of regions in the input corresponding to code (that is,
+not within comments or string literals).
+
+Then, apply the specified set of regular-expression mappings.
+
+Limitations:
+    * Requires source to be syntactically valid,
+    * Strange indentation (not one of the standard styles) will confuse it.
+    * Will be desperately confused if string literals include \".
+    * Doesn't even attempt to translate for, switch/case or do/while.
+    * Doesn't attempt to translate ternary operator.
+    * Doesn't yet cope well with multiline closed comments.
+    * Won't put Python line continuations in multiline conditionals.
+    * C comma expressions will spuriously turn into Python tuuple constructors,
+    * We don't translate frexp and modf because their call conventions differ
+      between Python and C, so we want them to throw an error.
+"""
+import sys, re
+
+shorthands = {
+    'id' : r"[a-zA-Z0-9._]+",
+    'exp' : r"[a-zA-Z0-9._\-+\*/]+",
+    'type' : r"void|int|bool|char \*|char|short|double|long|float|time_t|FILE \*",
+    'ind': r"^[ \t]*",
+}
+
+transformations = (
+    # externs can just disappear -- this may discard a following comment
+    (r"extern[^;]+;.*\n", r""),
+    # macros
+    (r"#define\s+(%(id)s)\s+(.*)\n", r"\1\t= \2\n"),
+    (r"#define\s+(%(id)s)\(([^)]*)\)\s+(\(.*)\n", r"def \1(\2):\treturn \3\n"),
+    (r"#define\s+(%(id)s)\(([^)]*)\)\s+([^(].*)\n", r"def \1(\2):\t\3\n"),
+    # function headers
+    (r"(?:^|\n)(?:static\s+)?(?:%(type)s) +(.*\)) *\n", r"\ndef \1:\n"),
+    (r"\(void\):\n", r"():\n"),
+    (r"def(.*):\n\Z", r"def\1:\n    "),	# indent comment on line after def
+    # control structure
+    (r"if *\(", r"if "),
+    (r"while *\(", r"while "), 
+    (r"while 1:", r"while True"),
+    (r"for \(;;\)\s*{", r"while True"),
+    (r"\)\s*{", r":"),
+    (r"(?<!\()\) *\n([ \t]+)", r":\n\1"),	# ) not followed by ; but by indent
+    (r"else if", r"elif"),
+    (r"else *{", r"else"),
+    (r"(?<!#)else", r"else:"),
+    (r"switch *\(", r"switch "),	# Not Python, but less ugly
+    # constants
+    (r"\btrue\b", r"True"),	# C99
+    (r"\bfalse\b", r"False"),	# C99
+    (r"\bTRUE\b", r"True"),	# pre-C99
+    (r"\bFALSE\b", r"False"),	# pre-C99
+    # declarations -- nuke if without initializers, otherwise remove type
+    (r"(\n[ \t]*)(%(type)s)[ \t]+[^=\n;]+;", r""),
+    (r"(\n[ \t]*)(%(type)s)[ \t]+(%(id)s)", r"\1\3"),
+    # block delimiters
+    (r";\n", r"\n"),
+    (r"\n[ \t]*}", r""),
+    (r"(?<!=\n)\n{\n", "\n"),	# Start-of-line brace that's not an initializer
+    # expression operations
+    (r" *\&\& *", r" and "),
+    (r" *\|\| *", r" or "),
+    (r"-\>", "."),
+    (r"!(?!=) *", "not "),
+    # increment and decrement statements
+    (r"(%(id)s)\+\+([;\n])", r"\1 += 1\2"),
+    (r"(%(id)s)--([;\n])", r"\1 -= 1\2"),
+    (r"\+\+(%(id)s)([;\n])", r"\1 += 1\2"),
+    (r"--(%(id)s)([;\n])", r"\1 -= 1\2"),
+    # no-op voids
+    (r"\n[ \t]*\(void\)", r"\n"),  
+    # C functions that turn into Python builtins
+    (r"\batoi\(", r"int("),
+    (r"\batof\(", r"float("),
+    (r"\batol\(", r"long("),
+    (r"\bfclose\((%(id)s)\)", r"\1.close()"),
+    (r"\bfopen\(", r"open("),
+    (r"\bfprintf\((%(id)s), *", r"\1.write("),
+    (r"\bstrlen\(", r"len("),
+    (r"\bstrcmp\((%(exp)s), *(%(exp)s)\) *== *0", r"\1 == \2"),
+    (r"\bstrcmp\((%(exp)s), *(%(exp)s)\) *!= *0", r"\1 != \2"),
+    (r"\bstrcpy\((%(exp)s), *(%(exp)s)\)", r"\1 = \2"),
+    # Python string library
+    (r"\btoupper\(", r"string.upper("),
+    (r"\btolower\(", r"string.lower("),
+    # Python os library
+    (r"\b(access|chdir|fchdir|chroot|chmod|chown|lchown|getcwd|lstat|mkfifo|mknod|mkdir|pathconf|rmdir|symlink|unlink)\(", r"os.\1("),
+    (r"\b(F_OK|R_OK|W_OK|X_OK|S_ISUID|S+ISGID|S_ENFMT|S_ISVTX|S_IREAD|S_IWRITE|S_IEXEC|S_IRWXU|S_IRUSR|S_IXUSR|S_IRWXG|S_IRGRP|S_IWGRP|S_IXGRP|S_IRWXO|S_IROTH|S_IWOTH|S_IXOTH)\b", r"os.\1"),
+    # Python time library
+    (r"\btime\(NULL\)", r"time.time()"),
+    # Python math library
+    (r"\b(acos|asin|atan|atan2|ceil|cos|cosh|exp|fabs|floor|fmod|ldexp|log10|log|pow|sinh|sin|sqrt|tan|tanh)\(", r"math.\1("),
+    # well-known includes
+    (r"#include \<string.h\>\n", ""),
+    (r"#include \<stdlib.h\>\n", ""),
+    (r"#include \<stdbool.h\>\n", ""),
+    (r"#include \<stdio.h\>\n", "import sys\n"),
+    (r"#include \<math.h\>\n", r"import math\n"),
+    (r"#include \<time.h\>\n", r"import time\n"),
+    (r"#include \<regex.h\>\n", r"import re\n"),
+    (r"#include \<curses.h\>\n", r"import curses\n"),
+    )
+
+def ctopy(input, debug=0):
+    "Transform C to Python."
+    if debug:
+        print "Region analysis begins"
+    boundaries = [0]
+    state = "text"
+    for i in range(len(input)):
+        if state == "text":
+            if input[i] == '"':
+                if debug:
+                    print "String literal starts at %d" % i
+                boundaries.append(i)
+                state = "stringliteral"
+            elif input[i:i+2] == "/*":
+                if debug:
+                    print "Closed comment starts at %d" % (i-1)
+                boundaries.append(i)
+                state = "closedcomment"
+            elif input[i:i+2] == "//":
+                if debug:
+                    print "String starts at %d" % i
+                boundaries.append(i)
+                state = "opencomment"
+        elif state == "stringliteral":
+            if input[i] == '"':
+                if debug:
+                    print "String ends at %d" % i
+                boundaries.append(i+1)
+                state = "text"
+        elif state == "closedcomment":
+            if input[i:i+2] == "*/":
+                if debug:
+                    print "closed comment ends at %d" % (i+1)
+                boundaries.append(i+2)
+                state = "text"                
+        elif state == "opencomment":
+            if input[i] == "\n":
+                if debug:
+                    print "Open comment ends at %d" % i
+                boundaries.append(i+1)
+                state = "text"
+    boundaries.append(len(input))
+    if debug:
+        print "Regexp transformation begins"
+    regions = []
+    for i in range(len(boundaries)-1):
+        regions.append(input[boundaries[i]:boundaries[i+1]])
+    if debug:
+        import pprint
+        pp = pprint.PrettyPrinter(indent=4)
+        pp.pprint(regions)
+    for i in range(len(regions)):
+        if regions[i][:2] == "/*":
+            if regions[i].count("\n") <= 1:		# winged comment
+                regions[i] = "#" + regions[i][2:-2]
+            elif re.search("/\*+\n", regions[i]):	# boxed comment
+                regions[i] = re.sub(r"\n([ \t]*)", r"\n# ", regions[i])
+                regions[i] = re.sub(r"^([ \t]*)/\*+", r"\1#", regions[i])
+                regions[i] = re.sub(r"\n([ \t]*)# \*+/", r"\n\1#", regions[i])
+            else:
+                regions[i] = regions[i].replace("/*", "#")
+                regions[i] = regions[i].replace("\n*/", "\n#")
+                regions[i] = regions[i].replace("*/", "")
+                regions[i] = regions[i].replace("\n *", "\n")
+                regions[i] = regions[i].replace("\n", "\n#")
+        elif regions[i][:2] == "//":
+            regions[i] = "#" + regions[i][2:]
+        elif regions[i][0] != '"':
+            for (s, t) in transformations:
+                regions[i] = re.sub(s % shorthands, t, regions[i], re.M)
+    if debug:
+        print "Import checks begin"
+    importlist = []
+    for i in range(len(regions)):
+        if regions[i][0] != '"' and regions[i][0] != "#":
+            for library in ("math", "os", "string", "time"):
+                if re.search(r"\b" + library + r"\.", regions[i]):
+                    if library not in importlist:
+                        importlist.append(library)
+    text = "".join(regions)
+    importlist = filter(lambda x: ("import %s" % x).find(text) > -1, importlist)
+    if importlist:
+        importlist = "import " + ",".join(importlist) + "\n"
+        regions.insert(0, importlist)
+    # Emit what we got
+    return text
+
+if __name__ == "__main__":
+    import getopt
+    (options, arguments) = getopt.getopt(sys.argv[1:], "d")
+    debug = 0;
+    for (switch, val) in options:
+	if (switch == '-d'):
+	    debug = 1
+
+    sys.stdout.write(ctopy(sys.stdin.read(), debug))
