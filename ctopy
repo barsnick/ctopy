@@ -149,11 +149,13 @@ def ctopy(input, debug=0):
                 state = "text"                
         elif state == "opencomment":
             if input[i] == "\n":
-                if debug:
+                if debug >= 2:
                     print "Open comment ends at %d" % i
                 boundaries.append(i+1)
                 state = "text"
     boundaries.append(len(input))
+    if boundaries[0] == 0:
+        boundaries.pop(0)
     if debug:
         print "Regexp transformation begins"
     regions = []
@@ -191,12 +193,15 @@ def ctopy(input, debug=0):
     if debug:
         print "Import checks begin"
     importlist = []
-    for i in range(len(regions)):
-        if regions[i][0] != '"' and regions[i][0] != "#":
-            for library in ("math", "os", "string", "time"):
-                if re.search(r"\b" + library + r"\.", regions[i]):
-                    if library not in importlist:
-                        importlist.append(library)
+    try:
+        for i in range(len(regions)):
+            if len(regions[i]) and regions[i][0]!='"' and regions[i][0]!="#":
+                for library in ("math", "os", "string", "time"):
+                    if re.search(r"\b" + library + r"\.", regions[i]):
+                        if library not in importlist:
+                            importlist.append(library)
+    except IndexError:
+        sys.stderr.write("ctopy: internal error on region %d (%s).\n" % (i, regions[i]))
     text = "".join(regions)
     importlist = filter(lambda x: ("import %s" % x).find(text) > -1, importlist)
     if importlist:
