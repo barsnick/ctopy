@@ -169,9 +169,9 @@ def ctopy(input, debug=0):
                 if regions[i].count("\n") <= 1:		# winged comment
                     regions[i] = "#" + regions[i][2:-2]
                 elif re.search("/\*+\n", regions[i]):	# boxed comment
-                    regions[i] = re.sub(r"\n([ \t]*) \*", r"\n\1# ", regions[i])
-                    regions[i] = re.sub(r"^([ \t]*)/\*+", r"\1#", regions[i])
-                    regions[i] = re.sub(r"\n([ \t]*)\*+/$", r"\n\1#", regions[i])
+                    regions[i] = re.sub(r"\n([ \t]*) \*", r"\n\1 ", regions[i])
+                    regions[i] = re.sub(r"^([ \t]*)/\*+", r"\1", regions[i])
+                    regions[i] = re.sub(r"\n([ \t]*)\*+/$", r"\n\1", regions[i])
                     regions[i] = re.sub(r"\n([ \t]*)(?!#)", r"\n\1# ", regions[i])
                 else:
                     regions[i] = regions[i].replace("/*", "#")
