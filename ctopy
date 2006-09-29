@@ -202,7 +202,7 @@ def ctopy(input, debug=0):
                 elif re.search("/\*+\n", regions[i]):	# boxed comment
                     regions[i] = re.sub(r"\n([ \t]*) \* ?", r"\n\1",regions[i])
                     regions[i] = re.sub(r"\n([ \t]*)\*", r"\n\1", regions[i])
-                    regions[i] = re.sub(r"^([ \t]*)/\*+\n", r"\1\n", regions[i])
+                    regions[i] = re.sub(r"^([ \t]*)/\*+\n", r"\1#\n", regions[i])
                     regions[i] = re.sub(r"\n([ \t]*)\**/", r"\n\1", regions[i])
                     regions[i] = re.sub(r"\n([ \t]*)(?!#)", r"\n\1# ", regions[i])
                 else:
@@ -235,9 +235,9 @@ def ctopy(input, debug=0):
     importlist = filter(lambda x: ("import %s" % x).find(text) > -1, importlist)
     if importlist:
         importlist = "import " + ",".join(importlist) + "\n"
-        regions.insert(0, importlist)
+        text = importlist + text
     # Emit what we got.  Preverve imports in case this is a .h file 
-    return (text, importlist)
+    return text
 
 if __name__ == "__main__":
     import getopt
@@ -248,5 +248,5 @@ if __name__ == "__main__":
 	    debug = 1
 
     code = sys.stdin.read()
-    (text, imports) = ctopy(code, debug)
+    text = ctopy(code, debug)
     sys.stdout.write(text)
