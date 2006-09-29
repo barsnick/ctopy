@@ -16,7 +16,9 @@ Then, apply the specified set of regular-expression mappings.
 Limitations:
     * Requires source to be syntactically valid,
     * Strange indentation (not one of the standard styles) will confuse it.
-    * Doesn't even attempt to translate for, switch/case or do/while.
+    * Translates simples kinds of for-loops with a straight increment of
+      a loop variable, but not the more complex ones. 
+    * Doesn't even attempt to translate switch/case or do/while.
     * Doesn't attempt to translate ternary operator.
     * Won't put Python line continuations in multiline conditionals.
     * C comma expressions will spuriously turn into Python tuuple constructors,
@@ -47,6 +49,14 @@ transformations = (
     (r"while *\(", r"while "), 
     (r"while 1:", r"while True"),
     (r"for \(;;\)\s*{", r"while True"),
+    (r"for \((%(id)s) *= *0; *\1 *< *(%(id)s); *\1\+\+\)",
+     					r"for \1 in range(\2))"),
+    (r"for \((%(id)s) *= *0; *\1 *<= *(%(id)s); *\1\+\+\)",
+     					r"for \1 in range(\2+1))"),
+    (r"for \((%(id)s) *= *(\d+); *\1 *< *(%(id)s); *\1\+\+\)",
+     					r"for \1 in range(\2, \3))"),
+    (r"for \((%(id)s) *= *(\d+); *\1 *<= *(%(id)s); *\1\+\+\)",
+     					r"for \1 in range(\2, \3+1))"),
     (r"\)\s*{", r":"),
     (r"(?<!\()\) *\n([ \t]+)", r":\n\1"),	# ) not followed by ; but by indent
     (r"else if", r"elif"),
