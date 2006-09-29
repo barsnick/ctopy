@@ -27,7 +27,7 @@ Limitations:
 import sys, re
 
 shorthands = {
-    'id' : r"[a-zA-Z][a-zA-Z0-9._]+",
+    'id' : r"[a-zA-Z][a-zA-Z0-9._]*",
     'exp' : r"[a-zA-Z0-9._\-+\*/]+",
     'type' : r"void|int|bool|char \*|char|short|double|long|float|time_t|FILE \*",
 }
@@ -55,13 +55,13 @@ unsafe_transformations = (
     (r"while *\(", r"while "), 
     (r"while 1:", r"while True"),
     (r"for \(;;\)\s*{", r"while True"),
-    (r"for \((%(id)s) *= *0; *\1 *< *(%(id)s); *\1\+\+\)",
+    (r"for \((%(id)s) *= *0; *\1 *< *([^;]+); *\1\+\+\)",
      					r"for \1 in range(\2))"),
-    (r"for \((%(id)s) *= *0; *\1 *<= *(%(id)s); *\1\+\+\)",
+    (r"for \((%(id)s) *= *0; *\1 *<= *([^;]+); *\1\+\+\)",
      					r"for \1 in range(\2+1))"),
-    (r"for \((%(id)s) *= *(\d+); *\1 *< *(%(id)s); *\1\+\+\)",
+    (r"for \((%(id)s) *= *(\d+); *\1 *< *([^;]+); *\1\+\+\)",
      					r"for \1 in range(\2, \3))"),
-    (r"for \((%(id)s) *= *(\d+); *\1 *<= *(%(id)s); *\1\+\+\)",
+    (r"for \((%(id)s) *= *(\d+); *\1 *<= *([^;]+); *\1\+\+\)",
      					r"for \1 in range(\2, \3+1))"),
     (r"\)\s*{", r":"),
     (r"(?<!\()\) *\n([ \t]+)", r":\n\1"),	# ) not followed by ; but by indent
