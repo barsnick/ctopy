@@ -28,12 +28,19 @@ Limitations:
 import sys, re
 
 shorthands = {
-    'id' : r"[a-zA-Z0-9._]+",
+    'id' : r"[a-zA-Z][a-zA-Z0-9._]+",
     'exp' : r"[a-zA-Z0-9._\-+\*/]+",
     'type' : r"void|int|bool|char \*|char|short|double|long|float|time_t|FILE \*",
 }
 
-transformations = (
+# These have to be applied to the entire file without breaking it into regions
+safe_transformations = (
+    # Simple initializers to tuples
+    (r"(?:static)?\s+(?:%(type)s)\s+(%(id)s)\[[a-zA-Z0-9._]*]\s*=\s*{([^}]+)}",
+     r"\1 = (\2)"),
+    )
+
+unsafe_transformations = (
     # externs can just disappear -- this may discard a following comment
     (r"extern[^;]+;.*\n", r""),
     # macros
@@ -119,8 +126,22 @@ transformations = (
     (r"#include \<curses.h\>\n", r"import curses\n"),
     )
 
+def repeat_apply(transforms, text):
+    "Repeatedly apply specified transformations to text until it's stable."
+    for (fro, to) in transforms:
+        while True:
+            output = re.sub(fro % shorthands, to, text, re.M)
+            if output != text:
+                text = output
+            else:
+                break
+    return text
+
 def ctopy(input, debug=0):
     "Transform C to Python."
+    if debug:
+        print "Pre-transformations begin"
+    input = repeat_apply(safe_transformations, input)
     if debug:
         print "Region analysis begins"
     boundaries = [0]
@@ -193,7 +214,7 @@ def ctopy(input, debug=0):
             elif regions[i][:2] == "//":
                 regions[i] = "#" + regions[i][2:]
             elif regions[i][0] != '"':
-                for (s, t) in transformations:
+                for (s, t) in unsafe_transformations:
                     regions[i] = re.sub(s % shorthands, t, regions[i], re.M)
     except IndexError:
         sys.stderr.write("ctopy: pathological string literal at %d.\n" % boundaries[i])
