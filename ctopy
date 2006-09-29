@@ -20,7 +20,6 @@ Limitations:
       a loop variable, but not the more complex ones. 
     * Doesn't even attempt to translate switch/case or do/while.
     * Doesn't attempt to translate ternary operator.
-    * Won't put Python line continuations in multiline conditionals.
     * C comma expressions will spuriously turn into Python tuuple constructors,
     * We don't translate frexp and modf because their call conventions differ
       between Python and C, so we want them to throw an error.
@@ -87,6 +86,7 @@ unsafe_transformations = (
     (r" *\|\| *", r" or "),
     (r"-\>", "."),
     (r"!(?!=) *", "not "),
+    (r"(and|or) *\n", r"\1 \\\n"),
     # increment and decrement statements
     (r"(%(id)s)\+\+([;\n])", r"\1 += 1\2"),
     (r"(%(id)s)--([;\n])", r"\1 -= 1\2"),
