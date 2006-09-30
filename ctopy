@@ -40,7 +40,7 @@ file_transformations = (
     )
 
 # These need to be applied repeatedly within regions.
-# They rely on ; statatement end markers.
+# They rely on semicolons as statatement end markers.
 repeat_transformations = (
     (
     # What we're doing here is stripping out prefix, suffix, and wrapper
@@ -167,15 +167,22 @@ region_transformations = (
     (r"#include \<curses.h\>\n", r"import curses\n"),
     )
 
+def single_apply(transforms, text):
+    "Apply specified set of transformations once."
+    for (fro, to) in transforms:
+        # Prepending \n then stripping it means that \n can reliably
+        # be used to recognize start of line.
+        text = re.sub(fro % shorthands, to, "\n" + text, re.M)[1:]
+    return text
+
 def repeat_apply(transforms, text):
     "Repeatedly apply specified transformations to text until it's stable."
-    for (fro, to) in transforms:
-        while True:
-            output = re.sub(fro % shorthands, to, text, re.M)
-            if output != text:
-                text = output
-            else:
-                break
+    while True:
+        transformed = single_apply(transforms, text)
+        if transformed != text:
+            text = transformed
+        else:
+            break
     return text
 
 def ctopy(input, debug=0):
@@ -257,8 +264,7 @@ def ctopy(input, debug=0):
             elif regions[i][0] != '"':
                 for hack in repeat_transformations:
                     regions[i] = repeat_apply(hack, regions[i])
-                for (s, t) in region_transformations:
-                    regions[i] = re.sub(s % shorthands, t, regions[i], re.M)
+                regions[i] = single_apply(region_transformations, regions[i])
     except IndexError:
         sys.stderr.write("ctopy: pathological string literal at %d.\n" % boundaries[i])
         raise SystemExit, 1
