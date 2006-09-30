@@ -29,17 +29,61 @@ import sys, re
 shorthands = {
     'id' : r"[a-zA-Z][a-zA-Z0-9._]*",
     'exp' : r"[a-zA-Z0-9._\-+\*/]+",
-    'type' : r"void|int|bool|char \*|char|short|double|long|float|time_t|FILE \*",
+    'type' : r"void|int|bool|char|short|double|long|float|time_t|FILE",
 }
 
 # These have to be applied to the entire file without breaking it into regions
-safe_transformations = (
+file_transformations = (
     # Simple initializers to tuples
     (r"(?:static)?\s+(?:%(type)s)\s+(%(id)s)\[[a-zA-Z0-9._]*]\s*=\s*{([^}]+)}",
      r"\1 = (\2)"),
     )
 
-unsafe_transformations = (
+# These need to be applied repeatedly within regions.
+# They rely on ; statatement end markers.
+repeat_transformations = (
+    (
+    # What we're doing here is stripping out prefix, suffix, and wrapper
+    # parts of declarations in order to reduce everything to base type
+    # followed by whitespace followed by id.  This is significant for
+    # simplifying both function formal parameter lists and variable
+    # declaration lines.  We'll get rid of the remaining type stuff
+    # in a later pass.
+    (r"(%(type)s)\s*\*", "\1"),			# Pointer type decls
+    (r"(%(type)s)\s*\((%(id)s)\)","\1 \2"),	# Function pointer wrappers
+    (r"(%(type)s)\s*(%(id)s)\[\]","\1 \2"),	# Array declarators
+    ),
+    (
+    # What we're doing here is trying to get rid of variable
+    # declarations that don't have initializer parts.
+    # First, bare ids between a comma and a trailing semicolon go away.
+    (r"(\n[ \t]*)((?:%(type)s).*)(,\s*%(id)s\s*);", r"\1\2;"),
+    # Next, bare ids between commas in a declaration line go away.
+    (r"(\n[ \t]*(?:%(type)s)\s+.*,)(%(id)s),(.*);", r"\1\3"),
+    # Next, bare ids just after the type and before a comma go away.
+    (r"(\n[ \t]*(?:%(type)s))(\s*%(id)s),(.*);", r"\1\3"),
+    # Any declaration line not containing an initializer goes away.
+    (r"\n[ \t]*(?:%(type)s)[^=;]*;", ""),
+    ),
+    (
+    # At this point in the game all declarations left have initializers.
+    # Replace commas in declaration lines with semis, otherwise Python will
+    # barf later because it thinks that, e.g., a=4, b=5  is an attempt to
+    # assign a constant to a tuple.
+    # FIXME: This will fail messily on GCC structure intializers.
+    (r"(\n[ \t]*(?:%(type)s).*),(.*);", r"\1;\2"),
+    ),
+    (
+    # Now rip out all remaining base type information.
+    # This will strip remaining type declarators out of formal parameter lists.
+    # It will also remove types from the beginning of declaration lines.
+    # Won't nuke casts because it looks for at least one following whitespace.
+    (r"(?:%(type)s)\s\s*", ""),
+    ),
+)
+
+# These get applied once within regions.
+region_transformations = (
     # externs can just disappear -- this may discard a following comment
     (r"extern[^;]+;.*\n", r""),
     # macros
@@ -74,9 +118,6 @@ unsafe_transformations = (
     (r"\bfalse\b", r"False"),	# C99
     (r"\bTRUE\b", r"True"),	# pre-C99
     (r"\bFALSE\b", r"False"),	# pre-C99
-    # declarations -- nuke if without initializers, otherwise remove type
-    (r"(\n[ \t]*)(%(type)s)[ \t]+[^=\n;]+;", r""),
-    (r"(\n[ \t]*)(%(type)s)[ \t]+(%(id)s)", r"\1\3"),
     # block delimiters
     (r";\n", r"\n"),
     (r"\n[ \t]*}", r""),
@@ -141,7 +182,7 @@ def ctopy(input, debug=0):
     "Transform C to Python."
     if debug:
         print "Pre-transformations begin"
-    input = repeat_apply(safe_transformations, input)
+    input = repeat_apply(file_transformations, input)
     if debug:
         print "Region analysis begins"
     boundaries = [0]
@@ -214,7 +255,9 @@ def ctopy(input, debug=0):
             elif regions[i][:2] == "//":
                 regions[i] = "#" + regions[i][2:]
             elif regions[i][0] != '"':
-                for (s, t) in unsafe_transformations:
+                for hack in repeat_transformations:
+                    regions[i] = repeat_apply(hack, regions[i])
+                for (s, t) in region_transformations:
                     regions[i] = re.sub(s % shorthands, t, regions[i], re.M)
     except IndexError:
         sys.stderr.write("ctopy: pathological string literal at %d.\n" % boundaries[i])
