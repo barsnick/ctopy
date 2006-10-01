@@ -82,11 +82,11 @@ region_transformations = (
     # externs can just disappear -- this may discard a following comment
     (r"extern[^;]+;.*\n", r""),
     # macros
-    (r"#define\s+(%(id)s)\s+(.*)[ \t]*(?=\n|$)", r"\1\t= \2"),
-    (r"#define\s+(%(id)s)\(([^)]*)\)\s+(.*\))[ \t]*(?=\n|$)", r"def \1(\2):\treturn \3"),
-    (r"#define\s+(%(id)s)\(([^)]*)\)\s+([^(].*)[ \t]*(?=\n|$)", r"def \1(\2):\t\3"),
+    (r"#define\s+(%(id)s)\s+(.*)", r"\1\t= \2"),
+    (r"#define\s+(%(id)s)\(([^)]*)\)\s+(.*\))", r"def \1(\2):\treturn \3"),
+    (r"#define\s+(%(id)s)\(([^)]*)\)\s+([^(].*)", r"def \1(\2):\t\3"),
     # function headers
-    (r"(?:^|\n)(?:static\s+)?(?:%(type)s) +(.*\)) *\n", r"\ndef \1:\n"),
+    (r"\n(?:static\s+)?(?:%(type)s) +(.*\)) *\n", r"\ndef \1:\n"),
     (r"\(void\):\n", r"():\n"),
     (r"def(.*):\n\Z", r"def\1:\n    "),	# indent comment on line after def
     # control structure
@@ -168,7 +168,7 @@ def single_apply(transforms, text):
         oldtext = text
         # Prepending \n then stripping it means that \n can reliably
         # be used to recognize start of line.
-        text = re.sub(fro % shorthands, to, "\n" + oldtext, re.M)[1:]
+        text = re.sub(fro % shorthands, to, "\n" + oldtext)[1:]
         if debug >= 2 and text != oldtext:
             print "%s transforms %s to %s: groups" % ((fro, to), oldtext, text)
     return text
