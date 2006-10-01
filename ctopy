@@ -22,7 +22,7 @@ Limitations:
 import sys, re
 
 shorthands = {
-    'id' : r"[a-zA-Z][a-zA-Z0-9._]*",
+    'id' : r"[a-zA-Z_][a-zA-Z0-9._]*",
     'exp' : r"[a-zA-Z0-9._\-+\*/]+",
     'type' : r"void|int|bool|char|short|double|long|float|time_t|FILE",
 }
@@ -165,9 +165,12 @@ region_transformations = (
 def single_apply(transforms, text):
     "Apply specified set of transformations once."
     for (fro, to) in transforms:
+        oldtext = text
         # Prepending \n then stripping it means that \n can reliably
         # be used to recognize start of line.
-        text = re.sub(fro % shorthands, to, "\n" + text, re.M)[1:]
+        text = re.sub(fro % shorthands, to, "\n" + oldtext, re.M)[1:]
+        if debug >= 2 and text != oldtext:
+            print "%s transforms %s to %s: groups" % ((fro, to), oldtext, text)
     return text
 
 def repeat_apply(transforms, text):
@@ -180,7 +183,7 @@ def repeat_apply(transforms, text):
             break
     return text
 
-def ctopy(input, debug=0):
+def ctopy(input):
     "Transform C to Python."
     if debug:
         print "Pre-transformations begin"
@@ -260,6 +263,8 @@ def ctopy(input, debug=0):
             elif regions[i][:2] == "//":
                 regions[i] = "#" + regions[i][2:]
             elif regions[i][0] != '"':
+                if debug >= 2:
+                    print "Doing repeated transformations"
                 for hack in repeat_transformations:
                     regions[i] = repeat_apply(hack, regions[i])
                 regions[i] = single_apply(region_transformations, regions[i])
@@ -297,5 +302,5 @@ if __name__ == "__main__":
     code = sys.stdin.read()
     if debug >= 2:
         print "Input is: %s" % `code`
-    text = ctopy(code, debug)
+    text = ctopy(code)
     sys.stdout.write(text)
