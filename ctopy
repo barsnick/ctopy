@@ -44,9 +44,9 @@ repeat_transformations = (
     # simplifying both function formal parameter lists and variable
     # declaration lines.  We'll get rid of the remaining type stuff
     # in a later pass.
-    (r"(%(type)s)\s*\*", "\1"),			# Pointer type decls
-    (r"(%(type)s)\s*\((%(id)s)\)","\1 \2"),	# Function pointer wrappers
-    (r"(%(type)s)\s*(%(id)s)\[\]","\1 \2"),	# Array declarators
+    (r"(%(type)s)\s*\*", r"\1"),			# Pointer type decls
+    (r"(%(type)s)\s*\((%(id)s)\)", r"\1 \2"),	# Function pointer wrappers
+    (r"(%(type)s)\s*(%(id)s)\[\]", r"\1 \2"),	# Array declarators
     ),
     (
     # What we're doing here is trying to get rid of variable
