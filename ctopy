@@ -2,16 +2,11 @@
 """
 ctopy -- a quick and dirty C-to-Python translator
 
-Relies on the fact that C and Python have fundamentally similar syntax
-and control structures, and C is normally indented in a way that indicates
-its block structure.
-
-Stages:
-
-First, define a set of regions in the input corresponding to code (that is,
-not within comments or string literals).
-
-Then, apply the specified set of regular-expression mappings.
+Relies on the fact that C and Python have fundamentally similar
+expression syntax and control structures, and C is normally indented
+in a way that indicates its block structure.  The only parts of
+expressions that don't nap over without change are ?: and comma
+expressions.
 
 Limitations:
     * Requires source to be syntactically valid,
@@ -87,9 +82,9 @@ region_transformations = (
     # externs can just disappear -- this may discard a following comment
     (r"extern[^;]+;.*\n", r""),
     # macros
-    (r"#define\s+(%(id)s)\s+(.*)\n", r"\1\t= \2\n"),
-    (r"#define\s+(%(id)s)\(([^)]*)\)\s+(.*\))\n", r"def \1(\2):\treturn \3\n"),
-    (r"#define\s+(%(id)s)\(([^)]*)\)\s+([^(].*)\n", r"def \1(\2):\t\3\n"),
+    (r"#define\s+(%(id)s)\s+(.*)[ \t]*\n", r"\1\t= \2\n"),
+    (r"#define\s+(%(id)s)\(([^)]*)\)\s+(.*\))[ \t]*\n", r"def \1(\2):\treturn \3\n"),
+    (r"#define\s+(%(id)s)\(([^)]*)\)\s+([^(].*)[ \t]*\n", r"def \1(\2):\t\3\n"),
     # function headers
     (r"(?:^|\n)(?:static\s+)?(?:%(type)s) +(.*\)) *\n", r"\ndef \1:\n"),
     (r"\(void\):\n", r"():\n"),
@@ -118,10 +113,6 @@ region_transformations = (
     (r"\bfalse\b", r"False"),	# C99
     (r"\bTRUE\b", r"True"),	# pre-C99
     (r"\bFALSE\b", r"False"),	# pre-C99
-    # block delimiters
-    (r";\n", r"\n"),
-    (r"\n[ \t]*}", r""),
-    (r"(?<!=\n)\n{\n", "\n"),	# Start-of-line brace that's not an initializer
     # expression operations
     (r" *\&\& *", r" and "),
     (r" *\|\| *", r" or "),
@@ -165,6 +156,10 @@ region_transformations = (
     (r"#include \<time.h\>\n", r"import time\n"),
     (r"#include \<regex.h\>\n", r"import re\n"),
     (r"#include \<curses.h\>\n", r"import curses\n"),
+    # block delimiters -- do these as late as possible, they're useful
+    (r";\n", r"\n"),
+    (r"\n[ \t]*}\n", r"\n"),
+    (r"(?<!=\n)\n{\n", "\n"),	# Start-of-line brace that's not an initializer
     )
 
 def single_apply(transforms, text):
@@ -190,6 +185,8 @@ def ctopy(input, debug=0):
     if debug:
         print "Pre-transformations begin"
     input = repeat_apply(file_transformations, input)
+    if debug >= 2:
+        print "After pre-transformations: %s" % `code`
     if debug:
         print "Region analysis begins"
     boundaries = [0]
@@ -241,6 +238,7 @@ def ctopy(input, debug=0):
     if debug:
         import pprint
         pp = pprint.PrettyPrinter(indent=4)
+        print "Regions:"
         pp.pprint(regions)
     try:
         for i in range(len(regions)):
@@ -294,8 +292,10 @@ if __name__ == "__main__":
     debug = 0;
     for (switch, val) in options:
 	if (switch == '-d'):
-	    debug = 1
+	    debug += 1
 
     code = sys.stdin.read()
+    if debug >= 2:
+        print "Input is: %s" % `code`
     text = ctopy(code, debug)
     sys.stdout.write(text)
