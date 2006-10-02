@@ -22,6 +22,8 @@ Limitations:
 """
 import sys, re
 
+stringify = []
+
 shorthands = {
     'id' : r"[a-zA-Z_][a-zA-Z0-9._]*",
     'exp' : r"[a-zA-Z0-9._\-+\*/]+",
@@ -203,6 +205,13 @@ def repeat_apply(transforms, text):
 
 def ctopy(input):
     "Transform C to Python."
+    if debug >= 2:
+        print "Processing inline enums"
+    global stringify
+    enums = re.finditer(r"enum[ \t]*{(.*)} (%(id)s)" % shorthands, input)
+    for instance in enums:
+        stringify += instance.group(1).replace(" ", "").split(",")
+        input = input[:instance.start(0)] + input[instance.start(2):]
     if debug:
         print "Pre-transformations begin"
     input = repeat_apply(file_transformations, input)
@@ -293,11 +302,18 @@ def ctopy(input):
                 regions[i] = "#" + regions[i][2:]
             elif regions[i][0] != '"':
                 if debug >= 2:
-                    print "Doing repeated transformations"
+                    print "Doing pre transformations"
                 regions[i] = single_apply(pre_transformations, regions[i])
+                if debug >= 2:
+                    print "Doing repeated transformations"
                 for hack in repeat_transformations:
                     regions[i] = repeat_apply(hack, regions[i])
+                if debug >= 2:
+                    print "Doing post transformations"
                 regions[i] = single_apply(post_transformations, regions[i])
+                for str in stringify:
+                    regions[i] = re.sub(r"\b" + str + r"\b",
+                                        '"' + str + '"', regions[i])
     except IndexError:
         sys.stderr.write("ctopy: pathological string literal at %d.\n" % boundaries[i])
         raise SystemExit, 1
@@ -370,13 +386,15 @@ def ctopy(input):
 
 if __name__ == "__main__":
     import getopt
-    (options, arguments) = getopt.getopt(sys.argv[1:], "c:dt:")
+    (options, arguments) = getopt.getopt(sys.argv[1:], "c:ds:t:")
     debug = 0;
     for (switch, val) in options:
 	if (switch == '-c'):
             shorthands["class"] += r"|\b" + val + r"\b"
 	elif (switch == '-d'):
 	    debug += 1
+	elif (switch == '-s'):
+            stringify.append(val)
 	elif (switch == '-t'):
             shorthands["type"] += r"|\b" + val + r"\b" 
 
