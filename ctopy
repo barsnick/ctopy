@@ -26,7 +26,7 @@ shorthands = {
     'id' : r"[a-zA-Z_][a-zA-Z0-9._]*",
     'exp' : r"[a-zA-Z0-9._\-+\*/]+",
     'type' : r"\bvoid\b|\bint\b|\bbool\b|\bchar\b|\bshort\b|\bdouble\b|\blong\b|\bfloat\b|\btime_t\b|\bFILE\b",
-    'cls' : "\b__dummyclass__\b",
+    'class' : "\b__dummyclass__\b",
 }
 
 # These have to be applied to the entire file without breaking it into regions
@@ -48,9 +48,9 @@ repeat_transformations = (
     # simplifying both function formal parameter lists and variable
     # declaration lines.  We'll get rid of the remaining type stuff
     # in a later pass.
-    (r"(%(type)s|%(cls)s)\s*\*", r"\1"),	# Pointer type decls
-    (r"(%(type)s|%(cls)s)\s*\((%(id)s)\)\(\)", r"\1 \2"),	# Function pointer wrappers
-    (r"(%(type)s|%(cls)s)\s*(%(id)s)\[\]", r"\1 \2"),	# Array declarators
+    (r"(%(type)s|%(class)s)\s*\*", r"\1"),	# Pointer type decls
+    (r"(%(type)s|%(class)s)\s*\((%(id)s)\)\(\)", r"\1 \2"),	# Function pointer wrappers
+    (r"(%(type)s|%(class)s)\s*(%(id)s)\[\]", r"\1 \2"),	# Array declarators
     ),
     (
     # What we're doing here is trying to get rid of variable
@@ -58,17 +58,17 @@ repeat_transformations = (
     # Bare ids just after the type and before a comma or semi go away.
     (r"(\n[ \t]*(?:%(type)s))(\s*%(id)s)([;,])", r"\1\3"),
     # Bare ids after class names and before comma or semi get an initializer.
-    (r"(\n[ \t]*)(%(cls)s)(\s*%(id)s)([;,])", r"\1\2\3 = \2()\4"),
+    (r"(\n[ \t]*)(%(class)s)(\s*%(id)s)([;,])", r"\1\2\3 = \2()\4"),
     # Bare types between a comma and a trailing semicolon go away.
     (r"(\n[ \t]*)((?:%(type)s).*)(,\s*%(id)s\s*);", r"\1\2;"),
     # But bare classes between comma and semicolon get a following initializer 
-    (r"(\n[ \t]*)(%(cls)s)(.*,\s)*(%(id)s)(\s*;)", r"\1\2\3\4 = \2()\5"),
+    (r"(\n[ \t]*)(%(class)s)(.*,\s)*(%(id)s)(\s*;)", r"\1\2\3\4 = \2()\5"),
     # Bare ids between commas in a declaration line go away.
     (r"(\n[ \t]*(?:%(type)s)\s+.*)(,\s*%(id)s),(.*);", r"\1\3"),
     # But bare class names between commas get an initializer
-    (r"(\n[ \t]*)(%(cls)s)(\s+.*,)(\s*%(id)s),(.*);", r"\1\2\3\4 = \2(),\5"),
+    (r"(\n[ \t]*)(%(class)s)(\s+.*,)(\s*%(id)s),(.*);", r"\1\2\3\4 = \2(),\5"),
     # Any declaration line not containing an initializer goes away.
-    (r"\n[ \t]*(?:%(type)s|%(cls)s)[^=;]*;", ""),
+    (r"\n[ \t]*(?:%(type)s|%(class)s)[^=;]*;", ""),
     ),
     (
     # At this point in the game all declarations left have initializers.
@@ -76,14 +76,14 @@ repeat_transformations = (
     # barf later because it thinks that, e.g., a=4, b=5  is an attempt to
     # assign a constant to a tuple.
     # FIXME: This will fail messily on GCC structure intializers.
-    (r"(\n[ \t]*(?:%(type)s|%(cls)s).*),(.*);", r"\1;\2"),
+    (r"(\n[ \t]*(?:%(type)s|%(class)s).*),(.*);", r"\1;\2"),
     ),
     (
     # Now rip out all remaining base type information.
     # This will strip remaining type declarators out of formal parameter lists.
     # It will also remove types from the beginning of declaration lines.
     # Won't nuke casts because it looks for at least one following whitespace.
-    (r"(?:%(type)s|%(cls)s)[\s;]\s*", ""),
+    (r"(?:%(type)s|%(class)s)[\s;]\s*", ""),
     ),
 )
 
@@ -321,7 +321,7 @@ def ctopy(input):
                 m = re.match("(%(id)s) {" % shorthands, regions[i+1])
                 if m:
                     shorthands['type'] += "|" + m.group(1)
-                    regions[i] = '# From enumerated type %s\n' % m.group(1)
+                    regions[i] = '# From enumerated type \'%s\'\n' % m.group(1)
                     regions[i+1] = regions[i+1][m.end(0)+1:]
                 else: 
                     regions[i] = '# From anonymous enumerated type\n'
@@ -329,7 +329,7 @@ def ctopy(input):
                 m = re.match("\s* (%(id)s)\s*;?" % shorthands, regions[i+3])
                 if m:
                     shorthands['type'] += "|" + m.group(1)
-                    regions[i] = '# From enumerated type %s\n' % m.group(1)
+                    regions[i] = '# From enumerated type \'%s\'\n' % m.group(1)
                     regions[i+3] = regions[i+3][:m.start(0)] + "\n\n"
                 else: 
                     regions[i] = '# From anonymous typedefed enum (?!)\n'
@@ -369,15 +369,15 @@ def ctopy(input):
 
 if __name__ == "__main__":
     import getopt
-    (options, arguments) = getopt.getopt(sys.argv[1:], "c:d")
+    (options, arguments) = getopt.getopt(sys.argv[1:], "c:dt:")
     debug = 0;
-    classes = ["__dummyclass__"]
     for (switch, val) in options:
 	if (switch == '-c'):
-	    classes.append(val)
-            shorthands["cls"] = "|".join(filter(lambda x: r"\b"+x+r"\b", classes))
+            shorthands["class"] += r"|\b" + val + r"\b"
 	elif (switch == '-d'):
 	    debug += 1
+	elif (switch == '-t'):
+            shorthands["type"] += r"|\b" + val + r"\b" 
 
     code = sys.stdin.read()
     if debug >= 2:
