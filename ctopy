@@ -363,7 +363,7 @@ def ctopy(input):
                 regions[i] = "\n".join(txt)
     if debug:
         "Final transformations begin"
-    regions = map(lambda r: single_apply(final_transformations, r),regions)
+    regions = map(lambda r: repeat_apply(final_transformations, r),regions)
     if debug:
         print "Import checks begin"
     importlist = []
@@ -384,15 +384,31 @@ def ctopy(input):
     # Emit what we got.  Preserve imports in case this is a .h file 
     return text
 
+def process_hints(filename):
+    "Process a translation-hints file."
+    for line in open(filename):
+        if line[0] == "#":
+            pass
+        else:
+            (cmd, tok) = line.split()
+            if cmd == "stringify":
+                stringify.append(tok)
+            elif cmd == "type":
+                shorthands["type"] += r"|\b" + tok + r"\b" 
+            elif cmd == "class":
+                shorthands["class"] += r"|\b" + tok + r"\b" 
+
 if __name__ == "__main__":
     import getopt
-    (options, arguments) = getopt.getopt(sys.argv[1:], "c:ds:t:")
+    (options, arguments) = getopt.getopt(sys.argv[1:], "c:h:ds:t:")
     debug = 0;
     for (switch, val) in options:
 	if (switch == '-c'):
             shorthands["class"] += r"|\b" + val + r"\b"
 	elif (switch == '-d'):
 	    debug += 1
+	elif (switch == '-h'):
+            process_hints(val)
 	elif (switch == '-s'):
             stringify.append(val)
 	elif (switch == '-t'):
