@@ -77,18 +77,22 @@ repeat_transformations = (
     ),
 )
 
-# These get applied once within regions.
-region_transformations = (
+# These get applied once within regions, before type info has been stripped
+pre_transformations = (
+    # function headers
+    (r"\n(?:static\s+)?(?:%(type)s) +(.*\)) *\n", r"\ndef \1:\n"),
+    (r"\(void\):\n", r"():\n"),
+    (r"def(.*):\n\Z", r"def\1:\n    "),	# indent comment on line after def
+    )
+
+# These get applied once within regions, after type info has been stripped
+post_transformations = (
     # externs can just disappear -- this may discard a following comment
     (r"extern[^;]+;.*\n", r""),
     # macros
     (r"#define\s+(%(id)s)\s+(.*)", r"\1\t= \2"),
     (r"#define\s+(%(id)s)\(([^)]*)\)\s+(.*\))", r"def \1(\2):\treturn \3"),
     (r"#define\s+(%(id)s)\(([^)]*)\)\s+([^(].*)", r"def \1(\2):\t\3"),
-    # function headers
-    (r"\n(?:static\s+)?(?:%(type)s) +(.*\)) *\n", r"\ndef \1:\n"),
-    (r"\(void\):\n", r"():\n"),
-    (r"def(.*):\n\Z", r"def\1:\n    "),	# indent comment on line after def
     # control structure
     (r"if *\(", r"if "),
     (r"while *\(", r"while "), 
@@ -265,9 +269,10 @@ def ctopy(input):
             elif regions[i][0] != '"':
                 if debug >= 2:
                     print "Doing repeated transformations"
+                regions[i] = single_apply(pre_transformations, regions[i])
                 for hack in repeat_transformations:
                     regions[i] = repeat_apply(hack, regions[i])
-                regions[i] = single_apply(region_transformations, regions[i])
+                regions[i] = single_apply(post_transformations, regions[i])
     except IndexError:
         sys.stderr.write("ctopy: pathological string literal at %d.\n" % boundaries[i])
         raise SystemExit, 1
