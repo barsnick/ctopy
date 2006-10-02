@@ -18,6 +18,7 @@ Limitations:
     * C comma expressions will spuriously turn into Python tuuple constructors,
     * We don't translate frexp and modf because their call conventions differ
       between Python and C, so we want them to throw an error.
+    * Enumerations with only some values specified are not yet handled
 """
 import sys, re
 
@@ -334,6 +335,15 @@ def ctopy(input):
                     regions[i] = '# From anonymous typedefed enum (?!)\n'
             else:
                 regions[i] = re.sub(",\s*", "\n", regions[i])
+                val = 0
+                txt = regions[i].split("\n")
+                for j in range(len(txt)):
+                    if txt[j] == '' or txt[j].startswith("{"):
+                        pass
+                    elif '=' not in txt[j]:
+                        txt[j] += " = %d" % val
+                        val += 1
+                regions[i] = "\n".join(txt)
     if debug:
         "Final transformations begin"
     regions = map(lambda r: single_apply(final_transformations, r),regions)
