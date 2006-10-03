@@ -5,20 +5,36 @@ ctopy -- a quick and dirty C-to-Python translator
 Relies on the fact that C and Python have fundamentally similar
 expression syntax and control structures, and C is normally indented
 in a way that indicates its block structure.  The only parts of
-expressions that don't nap over without change are ?: and comma
+expressions that don't map over without change are ?: and comma
 expressions.
+
+You can give it hints.  A hint may be a line in a file pulled in by the -h
+option, or tokens in a source file comment beginning with '$ctopy'.  Available
+hints are as follows:
+
+	type <name> -- Treat <name> as a scalar type, not requiring
+        	initialization except by first assignment.
+
+	class <name> -- Treat name as a class; variables of this type
+        	must be initialized by calling the class's contructor
+		and assigning the returned value to the variable.
+
+	stringify <name> -- When this name occurs surrounded by word
+	 	boundaries, put string quotes around it.  Useful for
+		translating enumerated-type values into string literals,
+                which Python has as a first-class tyoe.
 
 Limitations:
     * Requires source to be syntactically valid,
     * Strange indentation (not one of the standard styles) will confuse it.
-    * Translates simples kinds of for-loops with a straight increment of
+    * Translates simple kinds of for-loops with a straight increment of
       a loop variable, but not the more complex ones. 
     * Doesn't even attempt to translate switch/case or do/while.
     * Doesn't attempt to translate ternary operator.
-    * C comma expressions will spuriously turn into Python tuuple constructors,
+    * C comma expressions will spuriously turn into Python tuple constructors,
     * We don't translate frexp and modf because their call conventions differ
       between Python and C, so we want them to throw an error.
-    * Enumerations with only some values specified are not yet handled
+    * Enumerations with only some values specified are not yet handled.
 """
 import sys, re
 
@@ -34,7 +50,7 @@ shorthands = {
 # These have to be applied to the entire file without breaking it into regions
 file_transformations = (
     # Simple initializers to tuples
-    (r"(?:static)?\s+(?:%(type)s)\s+(%(id)s)\[[a-zA-Z0-9._]*]\s*=\s*{([^}]+)}",
+    (r"(?:static)?\s+(?:%(type)s|%(class)s)\s+(%(id)s)\[[a-zA-Z0-9._]*]\s*=\s*{([^}]+)}",
      r"\1 = (\2)"),
     (r"enum\s+(%(id)s\s*){\s*",  r"enum \1{\n"),
     (r"enum\s+{\s*",  r"enum {\n"),
@@ -50,7 +66,7 @@ repeat_transformations = (
     # simplifying both function formal parameter lists and variable
     # declaration lines.  We'll get rid of the remaining type stuff
     # in a later pass.
-    (r"(%(type)s|%(class)s)\s*\*", r"\1"),	# Pointer type decls
+    (r"(%(type)s|%(class)s)\s*\*", r"\1 "),	# Pointer type decls
     (r"(%(type)s|%(class)s)\s*\((%(id)s)\)\(\)", r"\1 \2"),	# Function pointer wrappers
     (r"(%(type)s|%(class)s)\s*(%(id)s)\[\]", r"\1 \2"),	# Array declarators
     ),
@@ -179,7 +195,9 @@ final_transformations = (
     # block delimiters -- do these as late as possible, they're useful
     (r";\n", r"\n"),
     (r"\n[ \t]*}\n", r"\n"),
+    (r"\n[ \t]*}\Z", r""),
     (r"(?<!=\n)\n{\n", "\n"),	# Start-of-line brace that's not an initializer
+    (r"\n#\s*\$ctopy.*", ""),	# Make hints go away
     )
 
 def single_apply(transforms, text):
@@ -205,6 +223,11 @@ def repeat_apply(transforms, text):
 
 def ctopy(input):
     "Transform C to Python."
+    if debug >= 2:
+        print "Gathering hints"
+    hints = re.finditer(r"\$ctopy (.*)", input)
+    for hint in hints:
+        process_hint(hint.group(1))
     if debug >= 2:
         print "Processing inline enums"
     global stringify
@@ -238,7 +261,7 @@ def ctopy(input):
                     print "Open comment starts at %d" % i
                 boundaries.append(i)
                 state = "opencomment"
-            elif input[i:].startswith("typedef enum ") or input[i:].startswith("enum "):
+            elif input[i:].startswith("typedef enum {") or input[i:].startswith("enum {"):
                 if debug >= 2:
                     print "enumeration starts at %d" % i
                 if input[i-2:i+1] != 'f e':
@@ -384,19 +407,20 @@ def ctopy(input):
     # Emit what we got.  Preserve imports in case this is a .h file 
     return text
 
-def process_hints(filename):
-    "Process a translation-hints file."
-    for line in open(filename):
-        if line[0] == "#":
-            pass
-        else:
-            (cmd, tok) = line.split()
-            if cmd == "stringify":
-                stringify.append(tok)
-            elif cmd == "type":
-                shorthands["type"] += r"|\b" + tok + r"\b" 
-            elif cmd == "class":
-                shorthands["class"] += r"|\b" + tok + r"\b" 
+def process_hint(line):
+    "Process a translation-hints line."
+    if line[0] == "#":
+        pass
+    else:
+        if debug >= 2:
+            print "Hint: %s" % `line`
+        (cmd, tok) = line.split()
+        if cmd == "stringify":
+            stringify.append(tok)
+        elif cmd == "type":
+            shorthands["type"] += r"|\b" + tok + r"\b" 
+        elif cmd == "class":
+            shorthands["class"] += r"|\b" + tok + r"\b"
 
 if __name__ == "__main__":
     import getopt
@@ -408,7 +432,8 @@ if __name__ == "__main__":
 	elif (switch == '-d'):
 	    debug += 1
 	elif (switch == '-h'):
-            process_hints(val)
+            for line in open(filename):
+                process_hint(line)
 	elif (switch == '-s'):
             stringify.append(val)
 	elif (switch == '-t'):
