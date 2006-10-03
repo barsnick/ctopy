@@ -56,24 +56,31 @@ file_transformations = (
      r"\1 = (\2)"),
     (r"enum\s+(%(id)s\s*){\s*",  r"enum \1{\n"),
     (r"enum\s+{\s*",  r"enum {\n"),
+    (r"\n#\s*\$ctopy.*", "\n"),	# Make hints go away
     )
 
 # These need to be applied repeatedly within regions.
 # They rely on semicolons as statatement end markers.
 repeat_transformations = (
     (
-    # What we're doing here is stripping out prefix, suffix, and wrapper
-    # parts of declarations in order to reduce everything to base type
-    # followed by whitespace followed by id.  This is significant for
-    # simplifying both function formal parameter lists and variable
-    # declaration lines.  We'll get rid of the remaining type stuff
-    # in a later pass.
+    # Group 1: What we're doing here is stripping out prefix, suffix,
+    # and wrapper parts of declarations in order to reduce everything
+    # to base type followed by whitespace followed by id.  This is
+    # significant for simplifying both function formal parameter lists
+    # and variable declaration lines.  We'll get rid of the remaining
+    # type stuff in a later pass.
     (r"(%(type)s|%(class)s)\s*\*", r"\1 "),	# Pointer type decls
     (r"(%(type)s|%(class)s)\s*\((%(id)s)\)\(\)", r"\1 \2"),	# Function pointer wrappers
     (r"(%(type)s|%(class)s)\s*(%(id)s)\[\]", r"\1 \2"),	# Array declarators
     ),
     (
-    # What we're doing here is trying to get rid of variable
+    # Group 2: Translate function headers.  This needs to happen after
+    # reduction to base types (just above) but before scalar types
+    # have been removed entirely.
+    (r"\n(?:static\s+)?(?:%(type)s|%(class)s) +(.*\)) *\n", r"\ndef \1:\n"),
+    ),
+    (
+    # Group 3: What we're doing here is trying to get rid of variable
     # declarations that don't have initializer parts.
     # Scalar-vars just after the type and before a comma go away.
     (r"(\n[ \t]*(?:%(type)s))(\s*%(id)s),", r"\1"),
@@ -93,7 +100,7 @@ repeat_transformations = (
     (r"\n[ \t]*(?:%(type)s|%(class)s)[^=;]*;", ""),
     ),
     (
-    # At this point in the game all declarations left have initializers.
+    # Group 4: At this point all declarations left have initializers.
     # Replace commas in declaration lines with semis, otherwise Python will
     # barf later because it thinks that, e.g., a=4, b=5  is an attempt to
     # assign a constant to a tuple.
@@ -101,7 +108,7 @@ repeat_transformations = (
     (r"(\n[ \t]*(?:%(type)s|%(class)s).*),(.*);", r"\1;\2"),
     ),
     (
-    # Now rip out all remaining base type information.
+    # Group 5: Now rip out all remaining base type information.
     # This will strip remaining type declarators out of formal parameter lists.
     # It will also remove types from the beginning of declaration lines.
     # Won't nuke casts because it looks for at least one following whitespace.
@@ -111,14 +118,15 @@ repeat_transformations = (
 
 # These get applied once within regions, before type info has been stripped
 pre_transformations = (
-    # function headers
-    (r"\n(?:static\s+)?(?:%(type)s) +(.*\)) *\n", r"\ndef \1:\n"),
-    (r"\(void\):\n", r"():\n"),
-    (r"def(.*):\n\Z", r"def\1:\n    "),	# indent comment on line after def
+    # We used to do function header translation here.   We leave
+    # this in place because we'll probably need to do things here again.
     )
 
 # These get applied once within regions, after type info has been stripped
 post_transformations = (
+    # some consequences of having translated function headers
+    (r"\(void\):\n", r"():\n"),
+    (r"def(.*):\n\Z", r"def\1:\n    "),	# indent comment on line after def
     # externs can just disappear -- this may discard a following comment
     (r"extern[^;]+;.*\n", r""),
     # macros
@@ -153,6 +161,9 @@ post_transformations = (
     (r"-\>", "."),
     (r"!(?!=) *", "not "),
     (r"(and|or) *\n", r"\1 \\\n"),
+    # most common uses of address operator
+    (r"return *&", "return "),
+    (r"= *&", "= "),
     # increment and decrement statements
     (r"(%(id)s)\+\+([;\n])", r"\1 += 1\2"),
     (r"(%(id)s)--([;\n])", r"\1 -= 1\2"),
@@ -197,7 +208,6 @@ final_transformations = (
     (r";(%(eol)s)", r"\1"),
     (r"\n[ \t]*}%(eol)s", r""),
     (r"(?<!=\n)\n{\n", "\n"),	# Start-of-line brace that's not an initializer
-    #(r"\n#\s*\$ctopy.*\n", "\n"),	# Make hints go away
     )
 
 def single_apply(transforms, text):
@@ -329,7 +339,9 @@ def ctopy(input):
                 regions[i] = single_apply(pre_transformations, regions[i])
                 if debug >= 2:
                     print "Doing repeated transformations"
-                for hack in repeat_transformations:
+                for (j, hack) in enumerate(repeat_transformations):
+                    if debug >= 2:
+                        print "Repeat transformations group %d" % (j+1)
                     regions[i] = repeat_apply(hack, regions[i])
                 if debug >= 2:
                     print "Doing post transformations"
