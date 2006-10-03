@@ -45,7 +45,7 @@ import sys, re
 
 stringify = []
 
-printflike = ("printf", "sprintf", "vfprintf")
+printflike = ["printf", "sprintf", "vfprintf"]
 
 shorthands = {
     'id' : r"[a-zA-Z_][a-zA-Z0-9._]*",
@@ -323,27 +323,27 @@ def ctopy(input):
         pp.pprint(regions)
     if debug >= 2:
         print "Processing printf-like functions"
-        for (i, here) in enumerate(regions):
-            if regions[i][0] != '"' or not "%" in here:
-                continue
-            else:
-                for func in printflike:
-                    if re.search(r"\b%s\([^;]*\Z" % func, regions[i]):
-                        break
-                    else:
-                        continue	# Didn't find printf-like function
-            regions[i+1] = " % (" + regions[i+1][1:].lstrip()
-            j = 3
-            parenlevel = 0
-            while j < len(regions[i+1]):
-                if regions[i+1][j] == "(":
-                    parenlevel += 1
-                if regions[i+1][j] == ")":
-                    parenlevel -= 1
-                if parenlevel == 0:
-                    regions[i+1] = regions[i+1][:j] + ")" + regions[i+1][j:]
+    for (i, here) in enumerate(regions):
+        if regions[i][0] != '"' or not "%" in here:
+            continue
+        else:
+            for func in printflike:
+                if re.search(r"\b%s\([^;]*\Z" % func, regions[i]):
                     break
-                j += 1
+                else:
+                    continue	# Didn't find printf-like function
+        regions[i+1] = " % (" + regions[i+1][1:].lstrip()
+        j = 3
+        parenlevel = 0
+        while j < len(regions[i+1]):
+            if regions[i+1][j] == "(":
+                parenlevel += 1
+            if regions[i+1][j] == ")":
+                parenlevel -= 1
+            if parenlevel == 0:
+                regions[i+1] = regions[i+1][:j] + ")" + regions[i+1][j:]
+                break
+            j += 1
     try:
         for i in range(len(regions)):
             if regions[i][:2] == "/*":
@@ -463,6 +463,8 @@ def process_hint(line):
             shorthands["type"] += r"|\b" + tok + r"\b" 
         elif cmd == "class":
             shorthands["class"] += r"|\b" + tok + r"\b"
+        elif cmd == "printflike":
+            printflike.append(tok)
 
 if __name__ == "__main__":
     import getopt
