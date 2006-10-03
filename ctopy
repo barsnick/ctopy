@@ -86,9 +86,9 @@ repeat_transformations = (
     # Class-Vars between comma and semicolon get a following initializer 
     (r"(\n[ \t]*)(%(class)s)(.*,\s)*(%(id)s)(\s*;)", r"\1\2\3\4 = \2()\5"),
     # Scalar-vars between commas in a declaration line go away.
-    (r"(\n[ \t]*(?:%(type)s)\s+.*)(,\s*%(id)s)(,.*);", r"\1\3"),
+    (r"(\n[ \t]*(?:%(type)s)\s+.*)(,\s*%(id)s)(,.*);", r"\1\3;"),
     # Bare class-vars between commas get an initializer
-    (r"(\n[ \t]*)(%(class)s)(\s+.*,)(\s*%(id)s),(.*);", r"\1\2\3\4 = \2(),\5"),
+    (r"(\n[ \t]*)(%(class)s)(\s+.*,)(\s*%(id)s),(.*);",r"\1\2\3\4 = \2(),\5;"),
     # Any declaration line not containing an initializer goes away.
     (r"\n[ \t]*(?:%(type)s|%(class)s)[^=;]*;", ""),
     ),
