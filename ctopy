@@ -45,6 +45,8 @@ shorthands = {
     'exp' : r"[a-zA-Z0-9._\-+\*/]+",
     'type' : r"\bvoid\b|\bint\b|\bbool\b|\bchar\b|\bshort\b|\bdouble\b|\blong\b|\bfloat\b|\btime_t\b|\bFILE\b",
     'class' : "\b__dummyclass__\b",
+    'ind' : "(\n[ \t]*)",		# Whitespace at start of line
+    'eol' : "[ \t]*(?=\n|\Z)",		# Whitespace to end of line or comment
 }
 
 # These have to be applied to the entire file without breaking it into regions
@@ -73,17 +75,19 @@ repeat_transformations = (
     (
     # What we're doing here is trying to get rid of variable
     # declarations that don't have initializer parts.
-    # Bare ids just after the type and before a comma or semi go away.
-    (r"(\n[ \t]*(?:%(type)s))(\s*%(id)s)([;,])", r"\1\3"),
-    # Bare ids after class names and before comma or semi get an initializer.
+    # Scalar-vars just after the type and before a comma go away.
+    (r"(\n[ \t]*(?:%(type)s))(\s*%(id)s),", r"\1"),
+    # Scalar-vars just after type and before a semi go away, but semi stays.
+    (r"(\n[ \t]*(?:%(type)s))(\s*%(id)s);", r"\1;"),
+    # Class-vars after class names and before comma or semi get an initializer.
     (r"(\n[ \t]*)(%(class)s)(\s*%(id)s)([;,])", r"\1\2\3 = \2()\4"),
-    # Bare types between a comma and a trailing semicolon go away.
+    # Scalar-vars between a comma and a trailing semicolon go away.
     (r"(\n[ \t]*)((?:%(type)s).*)(,\s*%(id)s\s*);", r"\1\2;"),
-    # But bare classes between comma and semicolon get a following initializer 
+    # Class-Vars between comma and semicolon get a following initializer 
     (r"(\n[ \t]*)(%(class)s)(.*,\s)*(%(id)s)(\s*;)", r"\1\2\3\4 = \2()\5"),
-    # Bare ids between commas in a declaration line go away.
-    (r"(\n[ \t]*(?:%(type)s)\s+.*)(,\s*%(id)s),(.*);", r"\1\3"),
-    # But bare class names between commas get an initializer
+    # Scalar-vars between commas in a declaration line go away.
+    (r"(\n[ \t]*(?:%(type)s)\s+.*)(,\s*%(id)s)(,.*);", r"\1\3"),
+    # Bare class-vars between commas get an initializer
     (r"(\n[ \t]*)(%(class)s)(\s+.*,)(\s*%(id)s),(.*);", r"\1\2\3\4 = \2(),\5"),
     # Any declaration line not containing an initializer goes away.
     (r"\n[ \t]*(?:%(type)s|%(class)s)[^=;]*;", ""),
@@ -122,21 +126,18 @@ post_transformations = (
     (r"#define\s+(%(id)s)\(([^)]*)\)\s+(.*\))", r"def \1(\2):\treturn \3"),
     (r"#define\s+(%(id)s)\(([^)]*)\)\s+([^(].*)", r"def \1(\2):\t\3"),
     # control structure
-    (r"\bif *\(", r"if "),
-    (r"\bwhile *\(", r"while "), 
-    (r"\bwhile 1:", r"while True"),
-    (r"\bfor \(;;\)\s*{", r"while True"),
+    (r"\bif *\((.*)\)", r"if \1:"),
+    (r"\bwhile *\((.*)\)", r"while \1:"), 
+    (r"\bwhile 1:", r"while True:"),
+    (r"\bfor \(;;\)\s*{", r"while True:"),
     (r"\bfor \((%(id)s) *= *0; *\1 *<= *([^;]+); *\1\+\+\)",
-     					r"for \1 in range(\2+1))"),
-    (r"\bfor \((%(id)s) *= *(\d+); *\1 *<= *([^;]+); *\1\+\+\)",
-     					r"for \1 in range(\2, \3+1))"),
+     					r"for \1 in range(\2+1):"),
+    (r"\bfor \((%(id)s) *= *(\w+); *\1 *<= *([^;]+); *\1\+\+\)",
+     					r"for \1 in range(\2, \3+1):"),
     (r"\bfor \((%(id)s) *= *0; *\1 *< *([^;]+); *\1\+\+\)",
-     					r"for \1 in range(\2))"),
-    (r"\bfor \((%(id)s) *= *(\d+); *\1 *< *([^;]+); *\1\+\+\)",
-     					r"for \1 in range(\2, \3))"),
-    (r"\)\s*{", r":"),
-    (r"\)\s*\Z", r":"),		# ) followed by end of region, must be comment
-    (r"(?<!\()\) *\n([ \t]+)", r":\n\1"),	# ) not followed by ; but by indent
+     					r"for \1 in range(\2):"),
+    (r"\bfor \((%(id)s) *= *(\w+); *\1 *< *([^;]+); *\1\+\+\)",
+     					r"for \1 in range(\2, \3):"),
     (r"else if", r"elif"),
     (r"else *{", r"else"),
     (r"(?<!#)else", r"else:"),
@@ -193,11 +194,10 @@ post_transformations = (
 
 final_transformations = (
     # block delimiters -- do these as late as possible, they're useful
-    (r";\n", r"\n"),
-    (r"\n[ \t]*}\n", r"\n"),
-    (r"\n[ \t]*}\Z", r""),
+    (r";(%(eol)s)", r"\1"),
+    (r"\n[ \t]*}%(eol)s", r""),
     (r"(?<!=\n)\n{\n", "\n"),	# Start-of-line brace that's not an initializer
-    (r"\n#\s*\$ctopy.*", ""),	# Make hints go away
+    #(r"\n#\s*\$ctopy.*\n", "\n"),	# Make hints go away
     )
 
 def single_apply(transforms, text):
@@ -354,7 +354,7 @@ def ctopy(input):
                 regions[i] = ''
                 state = "plain"
         # now do something useful with it
-        if debug >= 2:
+        if debug >= 3:
             print "Enumeration processing: state = %s, region = %s" % (state, `regions[i]`)
         if state in ("enum", "typedef"):
             if regions[i] == "enum ":
