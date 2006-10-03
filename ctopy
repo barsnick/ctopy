@@ -63,7 +63,7 @@ file_transformations = (
      r"\1 = (\2)"),
     (r"enum\s+(%(id)s\s*){\s*",  r"enum \1{\n"),
     (r"enum\s+{\s*",  r"enum {\n"),
-    (r"\n#\s*\$ctopy.*", "\n"),	# Make hints go away
+    (r"%(ind)s#\s*\$ctopy.*", ""),	# Make hints go away
     )
 
 # These need to be applied repeatedly within regions.
@@ -77,6 +77,7 @@ repeat_transformations = (
     # and variable declaration lines.  We'll get rid of the remaining
     # type stuff in a later pass.
     (r"(%(type)s|%(class)s)\s*\*", r"\1 "),	# Pointer type decls
+    (r"(%(type)s|%(class)s)(.*), \*", r"\1\2, "),	# Pointer type decls
     (r"(%(type)s|%(class)s)\s*\((%(id)s)\)\(\)", r"\1 \2"),	# Function pointer wrappers
     (r"(%(type)s|%(class)s)\s*(%(id)s)\[\]", r"\1 \2"),	# Array declarators
     ),
@@ -141,22 +142,22 @@ post_transformations = (
     (r"#define\s+(%(id)s)\(([^)]*)\)\s+(.*\))", r"def \1(\2):\treturn \3"),
     (r"#define\s+(%(id)s)\(([^)]*)\)\s+([^(].*)", r"def \1(\2):\t\3"),
     # control structure
-    (r"\bif *\((.*)\)", r"if \1:"),
-    (r"\bwhile *\((.*)\)", r"while \1:"), 
+    (r"\bif *\((.*)\)(\s*{)?", r"if \1:"),
+    (r"\bwhile *\((.*)\)(\s*{)?", r"while \1:"), 
     (r"\bwhile 1:", r"while True:"),
-    (r"\bfor \(;;\)\s*{", r"while True:"),
-    (r"\bfor \((%(id)s) *= *0; *\1 *<= *([^;]+); *\1\+\+\)",
+    (r"\bfor \(;;\)(\s*{)?", r"while True:"),
+    (r"\bfor \((%(id)s) *= *0; *\1 *<= *([^;]+); *\1\+\+\)(\s*{)?",
      					r"for \1 in range(\2+1):"),
-    (r"\bfor \((%(id)s) *= *(\w+); *\1 *<= *([^;]+); *\1\+\+\)",
+    (r"\bfor \((%(id)s) *= *(\w+); *\1 *<= *([^;]+); *\1\+\+\)(\s*{)?",
      					r"for \1 in range(\2, \3+1):"),
-    (r"\bfor \((%(id)s) *= *0; *\1 *< *([^;]+); *\1\+\+\)",
+    (r"\bfor \((%(id)s) *= *0; *\1 *< *([^;]+); *\1\+\+\)\s*{",
      					r"for \1 in range(\2):"),
-    (r"\bfor \((%(id)s) *= *(\w+); *\1 *< *([^;]+); *\1\+\+\)",
+    (r"\bfor \((%(id)s) *= *(\w+); *\1 *< *([^;]+); *\1\+\+\)(\s*{)?",
      					r"for \1 in range(\2, \3):"),
     (r"else if", r"elif"),
     (r"else *{", r"else"),
     (r"(?<!#)else", r"else:"),
-    (r"switch *\(", r"switch "),	# Not Python, but less ugly
+    (r"switch *\((.*)\)(\s*{)?", r"switch \1:"),# Not Python, but less ugly
     # constants
     (r"\btrue\b", r"True"),	# C99
     (r"\bfalse\b", r"False"),	# C99
@@ -225,7 +226,7 @@ def single_apply(transforms, text):
         # be used to recognize start of line.
         text = re.sub(fro % shorthands, to, "\n" + oldtext)[1:]
         if debug >= 2 and text != oldtext:
-            print "%s transforms '%s' to '%s'" % ((fro, to), oldtext, text)
+            print "%s transforms '%s' to '%s'" % ((fro, to), `oldtext`, `text`)
     return text
 
 def repeat_apply(transforms, text):
@@ -476,7 +477,7 @@ if __name__ == "__main__":
 	elif (switch == '-d'):
 	    debug += 1
 	elif (switch == '-h'):
-            for line in open(filename):
+            for line in open(val):
                 process_hint(line)
 	elif (switch == '-s'):
             stringify.append(val)
