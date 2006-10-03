@@ -24,6 +24,11 @@ hints are as follows:
 		translating enumerated-type values into string literals,
                 which Python has as a first-class tyoe.
 
+	printflike <name> -- declarates that a function is like printf;
+		its string arguments containing, if any, should be treated
+                like printf formats and their arg lists replaced with %
+                followed by a tuple containing the args.
+
 Limitations:
     * Requires source to be syntactically valid,
     * Strange indentation (not one of the standard styles) will confuse it.
@@ -39,6 +44,8 @@ Limitations:
 import sys, re
 
 stringify = []
+
+printflike = ("printf", "sprintf", "vfprintf")
 
 shorthands = {
     'id' : r"[a-zA-Z_][a-zA-Z0-9._]*",
@@ -119,7 +126,7 @@ repeat_transformations = (
 # These get applied once within regions, before type info has been stripped
 pre_transformations = (
     # We used to do function header translation here.   We leave
-    # this in place because we'll probably need to do things here again.
+   # this in place because we'll probably need to do things here again.
     )
 
 # These get applied once within regions, after type info has been stripped
@@ -303,17 +310,40 @@ def ctopy(input):
     boundaries.append(len(input))
     if debug >= 2:
         print "Boundaries:", boundaries
-    if debug:
-        print "Regexp transformation begins"
     regions = []
     for i in range(len(boundaries)-1):
         regions.append(input[boundaries[i]:boundaries[i+1]])
     regions = filter(lambda x: x != '', regions)
     if debug:
+        print "Regexp transformation begins"
+    if debug:
         import pprint
         pp = pprint.PrettyPrinter(indent=4)
         print "Regions:"
         pp.pprint(regions)
+    if debug >= 2:
+        print "Processing printf-like functions"
+        for (i, here) in enumerate(regions):
+            if regions[i][0] != '"' or not "%" in here:
+                continue
+            else:
+                for func in printflike:
+                    if re.search(r"\b%s\([^;]*\Z" % func, regions[i]):
+                        break
+                    else:
+                        continue	# Didn't find printf-like function
+            regions[i+1] = " % (" + regions[i+1][1:].lstrip()
+            j = 3
+            parenlevel = 0
+            while j < len(regions[i+1]):
+                if regions[i+1][j] == "(":
+                    parenlevel += 1
+                if regions[i+1][j] == ")":
+                    parenlevel -= 1
+                if parenlevel == 0:
+                    regions[i+1] = regions[i+1][:j] + ")" + regions[i+1][j:]
+                    break
+                j += 1
     try:
         for i in range(len(regions)):
             if regions[i][:2] == "/*":
