@@ -143,7 +143,7 @@ funmappings = (
     ("flash", "curses.flash"),
     ("flushinp", "curses.flushinp"),
     ("getmouse", "curses.getmouse"),
-    ("getsyx", "curses.getsyx",		# Calling convention is differen)t
+    ("getsyx", "curses.getsyx"),		# Calling convention is differen)t
     ("getwin", "curses.getwin"),
     ("has_colors", "curses.has_colors"),
     ("has_ic", "curses.has_ic"),
@@ -158,7 +158,7 @@ funmappings = (
     ("longname", "curses.longname"),
     ("meta", "curses.meta"),
     ("mouseinterval", "curses.mouseinterval"),
-    ("mousemask(", "curses.mousemask("),
+    ("mousemask", "curses.mousemask"),
     ("napms", "curses.napms"),
     ("newpad", "curses.newpad"),
     ("newwin", "curses.newwin"),
@@ -166,7 +166,7 @@ funmappings = (
     ("nocbreak", "curses.nocbreak"),
     ("noecho", "curses.noecho"),
     ("nonl", "curses.nonl"),
-    ("noqiflush(", "curses.noqiflush("),
+    ("noqiflush", "curses.noqiflush"),
     ("noraw", "curses.noraw"),
     ("pair_content", "curses.pair_content"),
     ("pair_number", "curses.pair_number"),
