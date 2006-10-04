@@ -736,8 +736,15 @@ def ctopy(input):
                             importlist.append(module)
                 for (fro, to, module) in methodmappings:
                     if re.search(r"\b" + fro + r"\b\(", regions[i]):
-                        regions[i] = re.sub(r"\b" + fro + r"\b\(([^,]*),\s*",
-                                            r"\1." + to + "(", regions[i])
+                        singlearg = r"\b"+fro+(r"\b\((%(exp)s)\)"%shorthands)
+                        if re.search(singlearg, regions[i]):
+                            regions[i] = re.sub(singlearg,
+                                                r"\1." + to +"()",
+                                                regions[i])
+                        else:
+                            regions[i] = re.sub(r"\b"+fro+r"\b\(([^,]*),\s*",
+                                                r"\1." + to + "(",
+                                                regions[i])
                         if module not in importlist:
                             importlist.append(module)
                 if debug >= 2:
