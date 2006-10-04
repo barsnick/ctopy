@@ -690,8 +690,12 @@ def ctopy(input):
                     break
                 else:
                     continue	# Didn't find printf-like function
-        regions[i+1] = " % (" + regions[i+1][1:].lstrip()
-        j = 3
+        # Found printf-like function.  Replace first comma in the
+        # argument region with " % (".  This copes gracefully with the
+        # case where the format string is wrapped in _( ) for
+        # initialization.
+        regions[i+1] = re.sub(r",\s*", r" % (", regions[i+1], 1)
+        j = regions[i+1].find("%") + 2
         parenlevel = 0
         while j < len(regions[i+1]):
             if regions[i+1][j] == "(":
@@ -738,7 +742,7 @@ def ctopy(input):
                     if re.search(r"\b" + fro + r"\b", regions[i]):
                         regions[i] = re.sub(r"\b" + fro + r"\b", to, regions[i])
                         (module, function) = to.split(".")
-                        if module not in importlist:
+                        if module not in importlist and module:
                             importlist.append(module)
                 for (fro, to, module) in methodmappings:
                     if re.search(r"\b" + fro + r"\b\(", regions[i]):
@@ -751,7 +755,7 @@ def ctopy(input):
                             regions[i] = re.sub(r"\b"+fro+r"\b\(([^,]*),\s*",
                                                 r"\1." + to + "(",
                                                 regions[i])
-                        if module not in importlist:
+                        if module not in importlist and module:
                             importlist.append(module)
                 if debug >= 2:
                     print "Doing post transformations"
@@ -811,7 +815,7 @@ def ctopy(input):
     regions = map(lambda r: repeat_apply(final_transformations, r),regions)
     text = "".join(regions)
     if importlist:
-        importlist = "import " + ",".join(importlist) + "\n"
+        importlist = "import " + ", ".join(importlist) + "\n"
         text = importlist + text
     # Emit what we got.  Preserve imports in case this is a .h file 
     return text
