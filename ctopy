@@ -185,11 +185,11 @@ post_transformations = (
     (r"\batol\(", r"long("),
     (r"\bfclose\((%(id)s)\)", r"\1.close()"),
     (r"\bfopen\(", r"open("),
-    (r"\bfprintf\((%(id)s), *", r"\1.write("),
+    (r"\bfprintf\((%(id)s),\s*", r"\1.write("),
     (r"\bstrlen\(", r"len("),
-    (r"\bstrcmp\((%(exp)s), *(%(exp)s)\) *== *0", r"\1 == \2"),
-    (r"\bstrcmp\((%(exp)s), *(%(exp)s)\) *!= *0", r"\1 != \2"),
-    (r"\bstrcpy\((%(exp)s), *(%(exp)s)\)", r"\1 = \2"),
+    (r"\bstrcmp\((%(exp)s),\s*(%(exp)s)\)\s*==\s*0", r"\1 == \2"),
+    (r"\bstrcmp\((%(exp)s),\s*(%(exp)s)\)\s*!=\s*0", r"\1 != \2"),
+    (r"\bstrcpy\((%(exp)s),\s*(%(exp)s)\)", r"\1 = \2"),
     # Python string library
     (r"\btoupper\(", r"string.upper("),
     (r"\btolower\(", r"string.lower("),
@@ -216,6 +216,7 @@ final_transformations = (
     (r";(%(eol)s)", r"\1"),
     (r"\n[ \t]*}%(eol)s", r""),
     (r"(?<!=\n)\n{\n", "\n"),	# Start-of-line brace that's not an initializer
+    (r"%% \(,(%(ind)s)", r"%\1("),
     )
 
 def single_apply(transforms, text):
@@ -455,17 +456,20 @@ def process_hint(line):
     if line[0] == "#":
         pass
     else:
+        global stringify, printflike
         if debug >= 2:
             print "Hint: %s" % `line`
-        (cmd, tok) = line.split()
-        if cmd == "stringify":
-            stringify.append(tok)
-        elif cmd == "type":
-            shorthands["type"] += r"|\b" + tok + r"\b" 
-        elif cmd == "class":
-            shorthands["class"] += r"|\b" + tok + r"\b"
-        elif cmd == "printflike":
-            printflike.append(tok)
+        lst = line.replace(",", " ").split()
+        if lst[0] == "stringify":
+            stringify += lst[1:]
+        elif lst[0] == "type":
+            for tok in lst[1:]:
+                shorthands["type"] += r"|\b" + tok + r"\b" 
+        elif lst[0] == "class":
+            for tok in lst[1:]:
+                shorthands["class"] += r"|\b" + tok + r"\b"
+        elif lst[0] == "printflike":
+            printflike += lst[1:]
 
 if __name__ == "__main__":
     import getopt
