@@ -40,6 +40,8 @@ Limitations:
     * We don't translate frexp and modf because their call conventions differ
       between Python and C, so we want them to throw an error.
     * Enumerations with only some values specified are not yet handled.
+
+Library bindings are as of 2.3.
 """
 import sys, re
 
@@ -55,6 +57,264 @@ shorthands = {
     'ind' : "(\n[ \t]*)",		# Whitespace at start of line
     'eol' : "[ \t]*(?=\n|\Z)",		# Whitespace to end of line or comment
 }
+
+# C functions and constants to be mapped into Python standard library bindings
+funmappings = (
+    # Python string library
+    ("toupper", "string.upper"),
+    ("tolower", "string.lower"),
+    # Python math library
+    ("acos", "math.acos"),
+    ("asin", "math.asin"),
+    ("atan", "math.atan"),
+    ("atan2", "math.atan2"),
+    ("ceil", "math.ceil"),
+    ("cos", "math.cos"),
+    ("cosh", "math.cosh"),
+    ("exp", "math.exp"),
+    ("fabs", "math.fabs"),
+    ("floor", "math.floor"),
+    ("fmod", "math.fmod"),
+    ("ldexp", "math.ldexp"),
+    ("log10", "math.log10"),
+    ("log", "math.log"),
+    ("pow", "math.pow"),
+    ("sinh", "math.sinh"),
+    ("sin", "math.sin"),
+    ("sqrt", "math.sqrt"),
+    ("tan", "math.tan"),
+    ("tanh", "math.tanh"),
+    # Python os library
+    ("access", "os.access"),
+    ("chdir", "os.chdir"),
+    ("fchdir", "os.fchdir"),
+    ("chroot", "os.chroot"),
+    ("chmod", "os.chmod"),
+    ("chown", "os.chown"),
+    ("lchown", "os.lchown"),
+    ("getcwd", "os.getcwd"),
+    ("lstat", "os.lstat"),
+    ("mkfifo", "os.mkfifo"),
+    ("mknod", "os.mknod"),
+    ("mkdir", "os.mkdir"),
+    ("pathconf", "os.pathconf"),
+    ("rmdir", "os.rmdir"),
+    ("symlink", "os.symlink"),
+    ("unlink", "os.unlink"),
+    ("F_OK", "os.F_OK"),
+    ("R_OK", "os.R_OK"),
+    ("W_OK", "os.W_OK"),
+    ("X_OK", "os.X_OK"),
+    ("S_ISUID", "os.S_ISUID"),
+    ("S+ISGID", "os.S+ISGID"),
+    ("S_ENFMT", "os.S_ENFMT"),
+    ("S_ISVTX", "os.S_ISVTX"),
+    ("S_IREAD", "os.S_IREAD"),
+    ("S_IWRITE", "os.S_IWRITE"),
+    ("S_IEXEC", "os.S_IEXEC"),
+    ("S_IRWXU", "os.S_IRWXU"),
+    ("S_IRUSR", "os.S_IRUSR"),
+    ("S_IXUSR", "os.S_IXUSR"),
+    ("S_IRWXG", "os.S_IRWXG"),
+    ("S_IRGRP", "os.S_IRGRP"),
+    ("S_IWGRP", "os.S_IWGRP"),
+    ("S_IXGRP", "os.S_IXGRP"),
+    ("S_IRWXO", "os.S_IRWXO"),
+    ("S_IROTH", "os.S_IROTH"),
+    ("S_IWOTH", "os.S_IWOTH"),
+    ("S_IXOTH", "os.S_IXOTH"),
+    # Python curses bindings emulate the C API rather exactly.  These are
+    # the module functions.
+    ("baudrate", "curses.baudrate"),
+    ("beep", "curses.beep"),
+    ("can_change_color", "curses.can_change_color"),
+    ("cbreak", "curses.cbreak"),
+    ("color_content", "curses.color_content"),
+    ("color_pair(", "curses.color_pair"),
+    ("curs_set", "curses.curs_set"),
+    ("def_prog_mode", "curses.def_prog_mode"),
+    ("def_shell_mode", "curses.def_shell_mode"),
+    ("delay_output", "curses.delay_output"),
+    ("doupdate", "curses.doupdate"),
+    ("echo", "curses.echo"),
+    ("endwin", "curses.endwin"),
+    ("erasechar", "curses.erasechar"),
+    ("filter", "curses.filter"),
+    ("flash", "curses.flash"),
+    ("flushinp", "curses.flushinp"),
+    ("getmouse", "curses.getmouse"),
+    ("getsyx", "curses.getsyx",		# Calling convention is differen)t
+    ("getwin", "curses.getwin"),
+    ("has_colors", "curses.has_colors"),
+    ("has_ic", "curses.has_ic"),
+    ("has_il", "curses.has_il"),
+    ("has_key", "curses.has_key"),
+    ("init_color", "curses.init_color"),
+    ("init_pair", "curses.init_pair"),
+    ("initscr", "curses.initscr"),
+    ("isendwin", "curses.isendwin"),
+    ("keyname", "curses.keyname"),
+    ("killchar", "curses.killchar"),
+    ("longname", "curses.longname"),
+    ("meta", "curses.meta"),
+    ("mouseinterval", "curses.mouseinterval"),
+    ("mousemask(", "curses.mousemask("),
+    ("napms", "curses.napms"),
+    ("newpad", "curses.newpad"),
+    ("newwin", "curses.newwin"),
+    ("nl", "curses.nl"),
+    ("nocbreak", "curses.nocbreak"),
+    ("noecho", "curses.noecho"),
+    ("nonl", "curses.nonl"),
+    ("noqiflush(", "curses.noqiflush("),
+    ("noraw", "curses.noraw"),
+    ("pair_content", "curses.pair_content"),
+    ("pair_number", "curses.pair_number"),
+    ("putp", "curses.putp"),
+    ("qiflush", "curses.qiflush"),
+    ("raw", "curses.raw"),
+    ("reset_prog_mode", "curses.reset_prog_mode"),
+    ("reset_shell_mode", "curses.reset_shell_mode"),
+    ("setsyx", "curses.setsyx"),
+    ("setupterm", "curses.setupterm"),
+    ("start_color", "curses.start_color"),
+    ("termattrs", "curses.termattrs"),
+    ("termname", "curses.termname"),
+    ("tigetflag", "curses.tigetflag"),
+    ("tigetnum", "curses.tigetnum"),
+    ("tigetstr", "curses.tigetstr"),
+    ("tparm", "curses.tparm"),
+    ("typeahead", "curses.typeahead"),
+    ("unctrl", "curses.unctrl"),
+    ("ungetch", "curses.ungetch"),
+    ("ungetmouse", "curses.ungetmouse"),
+    ("use_env", "curses.use_env"),
+    ("A_ATTRIBUTES", "curses.A_ATTRIBUTES"),
+    ("A_NORMAL", "curses.A_NORMAL"),
+    ("A_STANDOUT", "curses.A_STANDOUT"),
+    ("A_UNDERLINE", "curses.A_UNDERLINE"),
+    ("A_REVERSE", "curses.A_REVERSE"),
+    ("A_BLINK", "curses.A_BLINK"),
+    ("A_DIM", "curses.A_DIM"),
+    ("A_BOLDW", "curses.A_BOLDW"),
+    ("A_ALTCHARSET", "curses.A_ALTCHARSET"),
+    ("A_INVIS", "curses.A_INVIS"),
+    ("A_PROTECT", "curses.A_PROTECT"),
+    ("A_HORIZONTAL", "curses.A_HORIZONTAL"),
+    ("A_LEFT", "curses.A_LEFT"),
+    ("A_LOW", "curses.A_LOW"),
+    ("A_RIGHT", "curses.A_RIGHT"),
+    ("A_TOP", "curses.A_TOP"),
+    ("A_VERTICAL", "curses.A_VERTICAL"),
+    ("OLOR_BLACK", "curses.OLOR_BLACK"),
+    ("OLOR_RED", "curses.OLOR_RED"),
+    ("OLOR_GREEN", "curses.OLOR_GREEN"),
+    ("OLOR_YELLOW", "curses.OLOR_YELLOW"),
+    ("OLOR_BLUE", "curses.OLOR_BLUE"),
+    ("OLOR_MAGENTA", "curses.OLOR_MAGENTA"),
+    ("OLOR_CYAN", "curses.OLOR_CYAN"),
+    ("OLOR_WHITE", "curses.OLOR_WHITE"),
+    ("ACS_ULCORNER", "curses.ACS_ULCORNER"),
+    ("ACS_LLCORNER", "curses.ACS_LLCORNER"),
+    ("ACS_URCORNER", "curses.ACS_URCORNER"),
+    ("ACS_LRCORNER", "curses.ACS_LRCORNER"),
+    ("ACS_LTEE", "curses.ACS_LTEE"),
+    ("ACS_RTEE", "curses.ACS_RTEE"),
+    ("ACS_BTEE", "curses.ACS_BTEE"),
+    ("ACS_TTEE", "curses.ACS_TTEE"),
+    ("ACS_HLINE", "curses.ACS_HLINE"),
+    ("ACS_VLINE", "curses.ACS_VLINE"),
+    ("ACS_PLUS", "curses.ACS_PLUS"),
+    ("ACS_S1", "curses.ACS_S1"),
+    ("ACS_S9", "curses.ACS_S9"),
+    ("ACS_DIAMOND", "curses.ACS_DIAMOND"),
+    ("ACS_CKBOARD", "curses.ACS_CKBOARD"),
+    ("ACS_DEGREE", "curses.ACS_DEGREE"),
+    ("ACS_PLMINUS", "curses.ACS_PLMINUS"),
+    ("ACS_BULLET", "curses.ACS_BULLET"),
+    ("ACS_LARROW", "curses.ACS_LARROW"),
+    ("ACS_RARROW", "curses.ACS_RARROW"),
+    ("ACS_DARROW", "curses.ACS_DARROW"),
+    ("ACS_UARROW", "curses.ACS_UARROW"),
+    ("ACS_BOARD", "curses.ACS_BOARD"),
+    ("ACS_LANTERN", "curses.ACS_LANTERN"),
+    ("ACS_BLOCK", "curses.ACS_BLOCK"),
+)
+
+# These are C functions that need to turn into method calls on their first arg
+methodmappings = (
+    # Curses library.  This is all the methods on the Windows Objects page
+    ("waddch",  "addch"),
+    ("waddnstr", "addnstr"),
+    ("waddstr", "addstr"),
+    ("wattroff", "attroff"),
+    ("wattron", "attron"),
+    ("wattrset", "attrset"),
+    ("wbkgd", "bkgd"),
+    ("wbkgdset", "bkgdset"),
+    ("wborder", "border"),
+    ("wbox", "box"),
+    ("wclear", "clear"),
+    ("clearok", "clearok"),	# No w prefix
+    ("wclrtobot", "clrtobot"),
+    ("wclrtoeol", "clrtoeol"),
+    ("wcursyncup", "cursyncup"),
+    ("wdelch", "delch"),
+    ("wdeleteln", "deleteln"),
+    ("derwin", "derwin"),	# No w prefix
+    ("wechochar", "echochar"),
+    ("wenclose", "enclose"),
+    ("werase", "erase"),
+    ("getbegyx", "getbegyx"),	# No w prefix
+    ("wgetch", "getch"),
+    ("getkey", "getkey"),	# No w prefix
+    ("getmaxyx", "getmaxyx"),	# No w prefix, calling convention differs
+    ("getparyx", "getparyx"),	# No w prefix
+    ("wgetstr", "getstr"),
+    ("getyx", "getyx"),		# No w prefix. calling convention differ)s
+    ("whline", "hline"),
+    ("idcok", "idcok"),		# No w prefix
+    ("idlok", "idlok"),		# No w prefix
+    ("immedok", "immedok"),	# No w prefix
+    ("winch", "inch"),
+    ("winsch", "insch"),
+    ("winsdelln", "insdelln"),
+    ("winsertln", "insertln"),
+    ("winsnstr", "insnstr"),
+    ("winsstr", "insstr"),
+    ("winstr", "instr"),
+    ("is_linetouched", "is_linetouched"),	# No w prefix
+    ("is_wintouched", "is_wintouched"),		# No w prefix
+    ("keypad", "keypad"),	# No w prefix
+    ("leaveok", "leaveok"),	# No w prefix
+    ("wmove", "move"),
+    ("mvderwin", "mvderwin"),	# No w prefix
+    ("wmvwin", "mvwin"),
+    ("nodelay", "nodelay"),	# No w prefix
+    ("notimeout", "notimeout"),	# No w prefix
+    ("wnoutrefresh", "noutrefresh"),
+    ("overlay", "overlay"),	# No w prefix
+    ("overwrite", "overwrite"),	# No w prefix
+    ("putwin", "putwin"),	# No w prefix
+    ("wredrawln", "redrawln"),	# No w prefix
+    ("redrawwin", "redrawwin"),	# No w prefix
+    ("wrefresh", "refresh"),	# No w prefix
+    ("wscroll", "scroll"),
+    ("wsetscrreg", "setscrreg"),
+    ("wscrollok", "scrollok"),
+    ("wstandend", "standend"),
+    ("wstandout", "standout"),
+    ("subpad", "subpad"),	# No w prefix
+    ("wsubwin", "subwin"),
+    ("wsyncdown", "syncdown"),
+    ("syncok", "syncok"),	# No w prefix
+    ("wsyncup", "syncup"),
+    ("wtimeout", "timeout"),
+    ("wtouchline", "touchline"),
+    ("wtouchwin", "touchwin"),
+    ("untouchwin", "untouchwin"),	# No w prefix
+    ("wvline", "vline"),
+    )
 
 # These have to be applied to the entire file without breaking it into regions
 file_transformations = (
@@ -190,16 +450,8 @@ post_transformations = (
     (r"\bstrcmp\((%(exp)s),\s*(%(exp)s)\)\s*==\s*0", r"\1 == \2"),
     (r"\bstrcmp\((%(exp)s),\s*(%(exp)s)\)\s*!=\s*0", r"\1 != \2"),
     (r"\bstrcpy\((%(exp)s),\s*(%(exp)s)\)", r"\1 = \2"),
-    # Python string library
-    (r"\btoupper\(", r"string.upper("),
-    (r"\btolower\(", r"string.lower("),
-    # Python os library
-    (r"\b(access|chdir|fchdir|chroot|chmod|chown|lchown|getcwd|lstat|mkfifo|mknod|mkdir|pathconf|rmdir|symlink|unlink)\(", r"os.\1("),
-    (r"\b(F_OK|R_OK|W_OK|X_OK|S_ISUID|S+ISGID|S_ENFMT|S_ISVTX|S_IREAD|S_IWRITE|S_IEXEC|S_IRWXU|S_IRUSR|S_IXUSR|S_IRWXG|S_IRGRP|S_IWGRP|S_IXGRP|S_IRWXO|S_IROTH|S_IWOTH|S_IXOTH)\b", r"os.\1"),
     # Python time library
     (r"\btime\(NULL\)", r"time.time()"),
-    # Python math library
-    (r"\b(acos|asin|atan|atan2|ceil|cos|cosh|exp|fabs|floor|fmod|ldexp|log10|log|pow|sinh|sin|sqrt|tan|tanh)\(", r"math.\1("),
     # well-known includes
     (r"#include \<string.h\>\n", ""),
     (r"#include \<stdlib.h\>\n", ""),
@@ -429,20 +681,25 @@ def ctopy(input):
                         val += 1
                 regions[i] = "\n".join(txt)
     if debug:
+        print "Function mappings begin"
+    importlist = []
+    for i in range(len(regions)):
+        for (fro, to) in funmappings:
+            if re.search(r"\b" + fro + "\b", regions[i]):
+                regions[i] = re.sub(r"\b" + fro + "\b", to, regions[i])
+                (module, function) = to.split(".")
+                if module not in importlist:
+                    importlist.append(module)
+        for (fro, to) in methodmappings:
+            if re.search(r"\b" + fro + "\b(", regions[i]):
+                regions[i] = re.sub(r"\b" + fro + "\b\(([^,]*),\s*",
+                                    "\1." + to + "(", regions[i])
+                (module, function) = to.split(".")
+                if module not in importlist:
+                    importlist.append(module)
+    if debug:
         "Final transformations begin"
     regions = map(lambda r: repeat_apply(final_transformations, r),regions)
-    if debug:
-        print "Import checks begin"
-    importlist = []
-    try:
-        for i in range(len(regions)):
-            if len(regions[i]) and regions[i][0]!='"' and regions[i][0]!="#":
-                for library in ("math", "os", "string", "time"):
-                    if re.search(r"\b" + library + r"\.", regions[i]):
-                        if library not in importlist:
-                            importlist.append(library)
-    except IndexError:
-        sys.stderr.write("ctopy: internal error on region %d (%s).\n" % (i, regions[i]))
     text = "".join(regions)
     importlist = filter(lambda x: ("import %s" % x).find(text) > -1, importlist)
     if importlist:
