@@ -130,7 +130,7 @@ funmappings = (
     ("can_change_color", "curses.can_change_color"),
     ("cbreak", "curses.cbreak"),
     ("color_content", "curses.color_content"),
-    ("color_pair(", "curses.color_pair"),
+    ("color_pair", "curses.color_pair"),
     ("curs_set", "curses.curs_set"),
     ("def_prog_mode", "curses.def_prog_mode"),
     ("def_shell_mode", "curses.def_shell_mode"),
@@ -244,76 +244,76 @@ funmappings = (
 # These are C functions that need to turn into method calls on their first arg
 methodmappings = (
     # Curses library.  This is all the methods on the Windows Objects page
-    ("waddch",  "addch"),
-    ("waddnstr", "addnstr"),
-    ("waddstr", "addstr"),
-    ("wattroff", "attroff"),
-    ("wattron", "attron"),
-    ("wattrset", "attrset"),
-    ("wbkgd", "bkgd"),
-    ("wbkgdset", "bkgdset"),
-    ("wborder", "border"),
-    ("wbox", "box"),
-    ("wclear", "clear"),
-    ("clearok", "clearok"),	# No w prefix
-    ("wclrtobot", "clrtobot"),
-    ("wclrtoeol", "clrtoeol"),
-    ("wcursyncup", "cursyncup"),
-    ("wdelch", "delch"),
-    ("wdeleteln", "deleteln"),
-    ("derwin", "derwin"),	# No w prefix
-    ("wechochar", "echochar"),
-    ("wenclose", "enclose"),
-    ("werase", "erase"),
-    ("getbegyx", "getbegyx"),	# No w prefix
-    ("wgetch", "getch"),
-    ("getkey", "getkey"),	# No w prefix
-    ("getmaxyx", "getmaxyx"),	# No w prefix, calling convention differs
-    ("getparyx", "getparyx"),	# No w prefix
-    ("wgetstr", "getstr"),
-    ("getyx", "getyx"),		# No w prefix. calling convention differ)s
-    ("whline", "hline"),
-    ("idcok", "idcok"),		# No w prefix
-    ("idlok", "idlok"),		# No w prefix
-    ("immedok", "immedok"),	# No w prefix
-    ("winch", "inch"),
-    ("winsch", "insch"),
-    ("winsdelln", "insdelln"),
-    ("winsertln", "insertln"),
-    ("winsnstr", "insnstr"),
-    ("winsstr", "insstr"),
-    ("winstr", "instr"),
-    ("is_linetouched", "is_linetouched"),	# No w prefix
-    ("is_wintouched", "is_wintouched"),		# No w prefix
-    ("keypad", "keypad"),	# No w prefix
-    ("leaveok", "leaveok"),	# No w prefix
-    ("wmove", "move"),
-    ("mvderwin", "mvderwin"),	# No w prefix
-    ("wmvwin", "mvwin"),
-    ("nodelay", "nodelay"),	# No w prefix
-    ("notimeout", "notimeout"),	# No w prefix
-    ("wnoutrefresh", "noutrefresh"),
-    ("overlay", "overlay"),	# No w prefix
-    ("overwrite", "overwrite"),	# No w prefix
-    ("putwin", "putwin"),	# No w prefix
-    ("wredrawln", "redrawln"),	# No w prefix
-    ("redrawwin", "redrawwin"),	# No w prefix
-    ("wrefresh", "refresh"),	# No w prefix
-    ("wscroll", "scroll"),
-    ("wsetscrreg", "setscrreg"),
-    ("wscrollok", "scrollok"),
-    ("wstandend", "standend"),
-    ("wstandout", "standout"),
-    ("subpad", "subpad"),	# No w prefix
-    ("wsubwin", "subwin"),
-    ("wsyncdown", "syncdown"),
-    ("syncok", "syncok"),	# No w prefix
-    ("wsyncup", "syncup"),
-    ("wtimeout", "timeout"),
-    ("wtouchline", "touchline"),
-    ("wtouchwin", "touchwin"),
-    ("untouchwin", "untouchwin"),	# No w prefix
-    ("wvline", "vline"),
+    ("waddch",  "addch", "curses"),
+    ("waddnstr", "addnstr", "curses"),
+    ("waddstr", "addstr", "curses"),
+    ("wattroff", "attroff", "curses"),
+    ("wattron", "attron", "curses"),
+    ("wattrset", "attrset", "curses"),
+    ("wbkgd", "bkgd", "curses"),
+    ("wbkgdset", "bkgdset", "curses"),
+    ("wborder", "border", "curses"),
+    ("wbox", "box", "curses"),
+    ("wclear", "clear", "curses"),
+    ("clearok", "clearok", "curses"),	# No w prefix
+    ("wclrtobot", "clrtobot", "curses"),
+    ("wclrtoeol", "clrtoeol", "curses"),
+    ("wcursyncup", "cursyncup", "curses"),
+    ("wdelch", "delch", "curses"),
+    ("wdeleteln", "deleteln", "curses"),
+    ("derwin", "derwin", "curses"),	# No w prefix
+    ("wechochar", "echochar", "curses"),
+    ("wenclose", "enclose", "curses"),
+    ("werase", "erase", "curses"),
+    ("getbegyx", "getbegyx", "curses"),	# No w prefix
+    ("wgetch", "getch", "curses"),
+    ("getkey", "getkey", "curses"),	# No w prefix
+    ("getmaxyx", "getmaxyx", "curses"),	# No w prefix, calling convention differs
+    ("getparyx", "getparyx", "curses"),	# No w prefix
+    ("wgetstr", "getstr", "curses"),
+    ("getyx", "getyx", "curses"),		# No w prefix. calling convention differ)s
+    ("whline", "hline", "curses"),
+    ("idcok", "idcok", "curses"),		# No w prefix
+    ("idlok", "idlok", "curses"),		# No w prefix
+    ("immedok", "immedok", "curses"),	# No w prefix
+    ("winch", "inch", "curses"),
+    ("winsch", "insch", "curses"),
+    ("winsdelln", "insdelln", "curses"),
+    ("winsertln", "insertln", "curses"),
+    ("winsnstr", "insnstr", "curses"),
+    ("winsstr", "insstr", "curses"),
+    ("winstr", "instr", "curses"),
+    ("is_linetouched", "is_linetouched", "curses"),	# No w prefix
+    ("is_wintouched", "is_wintouched", "curses"),		# No w prefix
+    ("keypad", "keypad", "curses"),	# No w prefix
+    ("leaveok", "leaveok", "curses"),	# No w prefix
+    ("wmove", "move", "curses"),
+    ("mvderwin", "mvderwin", "curses"),	# No w prefix
+    ("wmvwin", "mvwin", "curses"),
+    ("nodelay", "nodelay", "curses"),	# No w prefix
+    ("notimeout", "notimeout", "curses"),	# No w prefix
+    ("wnoutrefresh", "noutrefresh", "curses"),
+    ("overlay", "overlay", "curses"),	# No w prefix
+    ("overwrite", "overwrite", "curses"),	# No w prefix
+    ("putwin", "putwin", "curses"),	# No w prefix
+    ("wredrawln", "redrawln", "curses"),	# No w prefix
+    ("redrawwin", "redrawwin", "curses"),	# No w prefix
+    ("wrefresh", "refresh", "curses"),	# No w prefix
+    ("wscroll", "scroll", "curses"),
+    ("wsetscrreg", "setscrreg", "curses"),
+    ("wscrollok", "scrollok", "curses"),
+    ("wstandend", "standend", "curses"),
+    ("wstandout", "standout", "curses"),
+    ("subpad", "subpad", "curses"),	# No w prefix
+    ("wsubwin", "subwin", "curses"),
+    ("wsyncdown", "syncdown", "curses"),
+    ("syncok", "syncok", "curses"),	# No w prefix
+    ("wsyncup", "syncup", "curses"),
+    ("wtimeout", "timeout", "curses"),
+    ("wtouchline", "touchline", "curses"),
+    ("wtouchwin", "touchwin", "curses"),
+    ("untouchwin", "untouchwin", "curses"),	# No w prefix
+    ("wvline", "vline", "curses"),
     )
 
 # These have to be applied to the entire file without breaking it into regions
@@ -446,6 +446,8 @@ post_transformations = (
     (r"\bfclose\((%(id)s)\)", r"\1.close()"),
     (r"\bfopen\(", r"open("),
     (r"\bfprintf\((%(id)s),\s*", r"\1.write("),
+    (r"\bputchar\(", "stdout.write("),
+    (r"\bgetchar\(\)", "stdout.read(1)"),
     (r"\bstrlen\(", r"len("),
     (r"\bstrcmp\((%(exp)s),\s*(%(exp)s)\)\s*==\s*0", r"\1 == \2"),
     (r"\bstrcmp\((%(exp)s),\s*(%(exp)s)\)\s*!=\s*0", r"\1 != \2"),
@@ -685,16 +687,15 @@ def ctopy(input):
     importlist = []
     for i in range(len(regions)):
         for (fro, to) in funmappings:
-            if re.search(r"\b" + fro + "\b", regions[i]):
-                regions[i] = re.sub(r"\b" + fro + "\b", to, regions[i])
+            if re.search(r"\b" + fro + r"\b", regions[i]):
+                regions[i] = re.sub(r"\b" + fro + r"\b", to, regions[i])
                 (module, function) = to.split(".")
                 if module not in importlist:
                     importlist.append(module)
-        for (fro, to) in methodmappings:
-            if re.search(r"\b" + fro + "\b(", regions[i]):
-                regions[i] = re.sub(r"\b" + fro + "\b\(([^,]*),\s*",
-                                    "\1." + to + "(", regions[i])
-                (module, function) = to.split(".")
+        for (fro, to, module) in methodmappings:
+            if re.search(r"\b" + fro + r"\b\(", regions[i]):
+                regions[i] = re.sub(r"\b" + fro + r"\b\(([^,]*),\s*",
+                                    r"\1." + to + "(", regions[i])
                 if module not in importlist:
                     importlist.append(module)
     if debug:
