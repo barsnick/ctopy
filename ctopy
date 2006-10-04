@@ -339,6 +339,14 @@ funmappings = (
 
 # These are C functions that need to turn into method calls on their first arg
 methodmappings = (
+    # File objects
+    ("fclose", "close", None),
+    ("fflush", "flush", None),
+    ("fileno", "fileno", None),
+    ("fprintf", "write", None),
+    ("fseek", "seek", None),
+    ("ftell", "tell", None),
+    ("ftruncate", "truncate", None),
     # Curses library.  This is all the methods on the Windows Objects page
     ("waddch",  "addch", "curses"),
     ("waddnstr", "addnstr", "curses"),
@@ -511,7 +519,7 @@ post_transformations = (
     (r"\bfor \((%(id)s) *= *(\w+); *\1 *< *([^;]+); *\1\+\+\)(\s*{)?",
      					r"for \1 in range(\2, \3):"),
     (r"else if", r"elif"),
-    (r"else *{", r"else"),
+    (r"(?:} )?else\s*{", r"else"),
     (r"(?<!#)else", r"else:"),
     (r"switch *\((.*)\)(\s*{)?", r"switch \1:"),# Not Python, but less ugly
     # constants
@@ -539,9 +547,7 @@ post_transformations = (
     (r"\batoi\(", r"int("),
     (r"\batof\(", r"float("),
     (r"\batol\(", r"long("),
-    (r"\bfclose\((%(id)s)\)", r"\1.close()"),
     (r"\bfopen\(", r"open("),
-    (r"\bfprintf\((%(id)s),\s*", r"\1.write("),
     (r"\bputchar\(", "stdout.write("),
     (r"\bgetchar\(\)", "stdout.read(1)"),
     (r"\bstrlen\(", r"len("),
