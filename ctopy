@@ -52,7 +52,7 @@ printflike = ["printf", "sprintf", "vfprintf"]
 shorthands = {
     'id' : r"[a-zA-Z_][a-zA-Z0-9._]*",
     'exp' : r"[a-zA-Z0-9._\-+\*/]+",
-    'type' : r"\bvoid\b|\bint\b|\bbool\b|\bchar\b|\bshort\b|\bdouble\b|\blong\b|\bfloat\b|\btime_t\b|\bFILE\b",
+    'type' : r"\bvoid\b|\bint\b|\bbool\b|\bchar\b|\bshort\b|\bdouble\b|\blong\b|\bfloat\b|\btime_t\b|\bFILE\b|bWINDOW\b",
     'class' : "\b__dummyclass__\b",
     'ind' : "(\n[ \t]*)",		# Whitespace at start of line
     'eol' : "[ \t]*(?=\n|\Z)",		# Whitespace to end of line or comment
@@ -85,22 +85,108 @@ funmappings = (
     ("tan", "math.tan"),
     ("tanh", "math.tanh"),
     # Python os library
+    ("abort", "os.abort"),
     ("access", "os.access"),
     ("chdir", "os.chdir"),
+    ("close", "os.close"),
+    ("environ", "os.environ"),
     ("fchdir", "os.fchdir"),
     ("chroot", "os.chroot"),
     ("chmod", "os.chmod"),
     ("chown", "os.chown"),
+    ("ctermid", "os.ctermid"),
+    ("dup", "os.dup"),
+    ("dup2", "os.dup2"),
+    ("execl", "os.execl"),
+    ("execle", "os.execle"),
+    ("execlp", "os.execlp"),
+    ("execlpe", "os.execlpe"),
+    ("execv", "os.execv"),
+    ("execve", "os.execve"),
+    ("execvp", "os.execvp"),
+    ("execvpe", "os.execvpe"),
+    ("_exit", "os._exit"),
+    ("exit", "os.exit"),
+    ("fdopen", "os.fdopen"),
+    ("fork", "os.fork"),
+    ("fsync", "os.fsync"),
+    ("ftruncate", "os.ftruncate"),
+    ("getcwd", "os.getcwd"),
+    ("getegid", "os.getegid"),
+    ("geteuid", "os.geteuid"),
+    ("getenv", "os.getenv"),
+    ("getgid", "os.getgid"),
+    ("getgroups", "os.getgroups"),
+    ("getlogin", "os.getlogin"),
+    ("getpgid", "os.getpgid"),
+    ("getpgrp", "os.getpgrp"),
+    ("getpid", "os.getpid"),
+    ("getppid", "os.getppid"),
+    ("getuid", "os.getuid"),
+    ("kill", "os.kill"),
+    ("killpg", "os.killpg"),
+    ("isatty", "os.isatty"),
+    ("lseek", "os.lseek"),
     ("lchown", "os.lchown"),
     ("getcwd", "os.getcwd"),
     ("lstat", "os.lstat"),
     ("mkfifo", "os.mkfifo"),
     ("mknod", "os.mknod"),
     ("mkdir", "os.mkdir"),
+    ("nice", "os.nice"),
+    ("open", "os.open"),
     ("pathconf", "os.pathconf"),
+    ("pipe", "os.pipe"),
+    ("plock", "os.plock"),
+    ("putenv", "os.putenv"),
+    ("read", "os.read"),
     ("rmdir", "os.rmdir"),
+    ("setegid", "os.setegid"),
+    ("seteuid", "os.seteuid"),
+    ("setgid", "os.setgid"),
+    ("setgroups", "os.setgroups"),
+    ("setpgrp", "os.setpgrp"),
+    ("setpgid", "os.setpgid"),
+    ("setreuid", "os.setreuid"),
+    ("setregid", "os.setregid"),
+    ("setsid", "os.setsid"),
+    ("setuid", "os.setuid"),
+    ("strerror", "os.strerror"),
+    ("umask", "os.umask"),
     ("symlink", "os.symlink"),
+    ("system", "os.system"),
+    ("tcgetpgrp", "os.tcgetpgrp"),
+    ("tcsetpgrp", "os.tcsetpgrp"),
+    ("tmpfile", "os.tmpfile"),
+    ("ttyname", "os.ttyname"),
     ("unlink", "os.unlink"),
+    ("write", "os.write"),
+    ("wait", "os.wait"),
+    ("waitpid", "os.waitpid"),
+    ("WNOHANG", "os.WNOHANG"),
+    ("WCONTINUED", "os.WCONTINUED"),
+    ("WUNTRACED", "os.WUNTRACED"),
+    ("WCOREDUMP", "os.WCOREDUMP"),
+    ("WIFCONTINUED", "os.WIFCONTINUED"),
+    ("WIFSTOPPED", "os.WIFSTOPPED"),
+    ("WIFSIGNALED", "os.WIFSIGNALED"),
+    ("WIFEXITED", "os.WIFEXITED"),
+    ("WEXITSTATUS", "os.WEXITSTATUS"),
+    ("WSTOPSIG", "os.WSTOPSIG"),
+    ("WTERMSIG", "os.WTERMSIG"),
+    ("O_RDONLY", "os.O_RDONLY"),
+    ("O_WRONLY", "os.O_WRONLY"),
+    ("O_RDWR", "os.O_RDWR"),
+    ("O_NDELAY", "os.O_NDELAY"),
+    ("O_NONBLOCK", "os.O_NONBLOCK"),
+    ("O_APPEND", "os.O_APPEND"),
+    ("O_DSYNC", "os.O_DSYNC"),
+    ("O_RSYNC", "os.O_RSYNC"),
+    ("O_SYNC", "os.O_SYNC"),
+    ("O_NOCTTY", "os.O_NOCTTY"),
+    ("O_CREAT", "os.O_CREAT"),
+    ("O_EXCL", "os.O_EXCL"),
+    ("O_TRUNC", "os.O_TRUNC"),
     ("F_OK", "os.F_OK"),
     ("R_OK", "os.R_OK"),
     ("W_OK", "os.W_OK"),
@@ -123,6 +209,16 @@ funmappings = (
     ("S_IROTH", "os.S_IROTH"),
     ("S_IWOTH", "os.S_IWOTH"),
     ("S_IXOTH", "os.S_IXOTH"),
+    # Python os.path library
+    ("basename", "os.path.basename"),
+    ("dirname", "os.path.dirname"),
+    # Python atexit library
+    ("atexit", "atexit.register"),
+    # Python sys library
+    ("argv", "sys.argv"),
+    ("stdin", "sys.stdin"),
+    ("stdout", "sys.stdout"),
+    ("stderr", "sys.stderr"),
     # Python curses bindings emulate the C API rather exactly.  These are
     # the module functions.
     ("baudrate", "curses.baudrate"),
@@ -151,7 +247,7 @@ funmappings = (
     ("has_key", "curses.has_key"),
     ("init_color", "curses.init_color"),
     ("init_pair", "curses.init_pair"),
-    ("initscr", "curses.initscr"),
+    ("initscr", "curses.initscr"),	# Must make this a global
     ("isendwin", "curses.isendwin"),
     ("keyname", "curses.keyname"),
     ("killchar", "curses.killchar"),
@@ -600,6 +696,7 @@ def ctopy(input):
                 regions[i+1] = regions[i+1][:j] + ")" + regions[i+1][j:]
                 break
             j += 1
+    importlist = []
     try:
         for i in range(len(regions)):
             if regions[i][:2] == "/*":
@@ -629,6 +726,20 @@ def ctopy(input):
                     if debug >= 2:
                         print "Repeat transformations group %d" % (j+1)
                     regions[i] = repeat_apply(hack, regions[i])
+                if debug:
+                    print "Function and method mappings begin"
+                for (fro, to) in funmappings:
+                    if re.search(r"\b" + fro + r"\b", regions[i]):
+                        regions[i] = re.sub(r"\b" + fro + r"\b", to, regions[i])
+                        (module, function) = to.split(".")
+                        if module not in importlist:
+                            importlist.append(module)
+                for (fro, to, module) in methodmappings:
+                    if re.search(r"\b" + fro + r"\b\(", regions[i]):
+                        regions[i] = re.sub(r"\b" + fro + r"\b\(([^,]*),\s*",
+                                            r"\1." + to + "(", regions[i])
+                        if module not in importlist:
+                            importlist.append(module)
                 if debug >= 2:
                     print "Doing post transformations"
                 regions[i] = single_apply(post_transformations, regions[i])
@@ -683,26 +794,9 @@ def ctopy(input):
                         val += 1
                 regions[i] = "\n".join(txt)
     if debug:
-        print "Function mappings begin"
-    importlist = []
-    for i in range(len(regions)):
-        for (fro, to) in funmappings:
-            if re.search(r"\b" + fro + r"\b", regions[i]):
-                regions[i] = re.sub(r"\b" + fro + r"\b", to, regions[i])
-                (module, function) = to.split(".")
-                if module not in importlist:
-                    importlist.append(module)
-        for (fro, to, module) in methodmappings:
-            if re.search(r"\b" + fro + r"\b\(", regions[i]):
-                regions[i] = re.sub(r"\b" + fro + r"\b\(([^,]*),\s*",
-                                    r"\1." + to + "(", regions[i])
-                if module not in importlist:
-                    importlist.append(module)
-    if debug:
         "Final transformations begin"
     regions = map(lambda r: repeat_apply(final_transformations, r),regions)
     text = "".join(regions)
-    importlist = filter(lambda x: ("import %s" % x).find(text) > -1, importlist)
     if importlist:
         importlist = "import " + ",".join(importlist) + "\n"
         text = importlist + text
