@@ -2,46 +2,10 @@
 """
 ctopy -- a quick and dirty C-to-Python translator
 
-Relies on the fact that C and Python have fundamentally similar
-expression syntax and control structures, and C is normally indented
-in a way that indicates its block structure.  The only parts of
-expressions that don't map over without change are ?: and comma
-expressions.
-
-You can give it hints.  A hint may be a line in a file pulled in by the -h
-option, or tokens in a source file comment beginning with '$ctopy'.  Available
-hints are as follows:
-
-	type <name> -- Treat <name> as a scalar type, not requiring
-        	initialization except by first assignment.
-
-	class <name> -- Treat name as a class; variables of this type
-        	must be initialized by calling the class's contructor
-		and assigning the returned value to the variable.
-
-	stringify <name> -- When this name occurs surrounded by word
-	 	boundaries, put string quotes around it.  Useful for
-		translating enumerated-type values into string literals,
-                which Python has as a first-class tyoe.
-
-	printflike <name> -- declarates that a function is like printf;
-		its string arguments containing, if any, should be treated
-                like printf formats and their arg lists replaced with %
-                followed by a tuple containing the args.
-
-Limitations:
-    * Requires source to be syntactically valid,
-    * Strange indentation (not one of the standard styles) will confuse it.
-    * Translates simple kinds of for-loops with a straight increment of
-      a loop variable, but not the more complex ones. 
-    * Doesn't even attempt to translate switch/case or do/while.
-    * Doesn't attempt to translate ternary operator.
-    * C comma expressions will spuriously turn into Python tuple constructors,
-    * We don't translate frexp and modf because their call conventions differ
-      between Python and C, so we want them to throw an error.
-    * Enumerations with only some values specified are not yet handled.
-
-Library bindings are as of 2.3.
+FIXME: Python library bindings are as of 2.6a0.
+FIXME: The curses mapping is quite incomplete.
+FIXME: libraries not yet mapped: curses.panel, dbm.
+FIXME: Python library scan is only complete up to 2.3 gdbm.
 """
 import sys, re
 
@@ -58,12 +22,278 @@ shorthands = {
     'eol' : "[ \t]*(?=\n|\Z)",		# Whitespace to end of line or comment
 }
 
-# C functions and constants to be mapped into Python standard library bindings
+# C functions and constants to be mapped into Python standard library bindings.
+# This list is explicit because sometimes there are slight name changes...
+# and because explicit is better than implicit.
 funmappings = (
-    # Python string library
-    ("toupper", "string.upper"),
-    ("tolower", "string.lower"),
-    # Python math library
+    # Python atexit library
+    ("atexit", "atexit.register"),
+    # Python crypt library
+    ("crypt", "crypt.crypt"),
+    # Python curses bindings emulate the C API rather exactly.  These are
+    # the module functions.
+    ("baudrate", "curses.baudrate"),
+    ("beep", "curses.beep"),
+    ("can_change_color", "curses.can_change_color"),
+    ("cbreak", "curses.cbreak"),
+    ("color_content", "curses.color_content"),
+    ("color_pair", "curses.color_pair"),
+    ("curs_set", "curses.curs_set"),
+    ("def_prog_mode", "curses.def_prog_mode"),
+    ("def_shell_mode", "curses.def_shell_mode"),
+    ("delay_output", "curses.delay_output"),
+    ("doupdate", "curses.doupdate"),
+    ("echo", "curses.echo"),
+    ("endwin", "curses.endwin"),
+    ("erasechar", "curses.erasechar"),
+    ("filter", "curses.filter"),
+    ("flash", "curses.flash"),
+    ("flushinp", "curses.flushinp"),
+    ("getmouse", "curses.getmouse"),
+    ("getsyx", "curses.getsyx"),		# Calling convention is different
+    ("getwin", "curses.getwin"),
+    ("has_colors", "curses.has_colors"),
+    ("has_ic", "curses.has_ic"),
+    ("has_il", "curses.has_il"),
+    ("has_key", "curses.has_key"),
+    ("init_color", "curses.init_color"),
+    ("init_pair", "curses.init_pair"),
+    ("initscr", "curses.initscr"),	# Must make this a global
+    ("isendwin", "curses.isendwin"),
+    ("keyname", "curses.keyname"),
+    ("killchar", "curses.killchar"),
+    ("longname", "curses.longname"),
+    ("meta", "curses.meta"),
+    ("mouseinterval", "curses.mouseinterval"),
+    ("mousemask", "curses.mousemask"),
+    ("napms", "curses.napms"),
+    ("newpad", "curses.newpad"),
+    ("newwin", "curses.newwin"),
+    ("nl", "curses.nl"),
+    ("nocbreak", "curses.nocbreak"),
+    ("noecho", "curses.noecho"),
+    ("nonl", "curses.nonl"),
+    ("noqiflush", "curses.noqiflush"),
+    ("noraw", "curses.noraw"),
+    ("pair_content", "curses.pair_content"),
+    ("pair_number", "curses.pair_number"),
+    ("putp", "curses.putp"),
+    ("qiflush", "curses.qiflush"),
+    ("raw", "curses.raw"),
+    ("reset_prog_mode", "curses.reset_prog_mode"),
+    ("reset_shell_mode", "curses.reset_shell_mode"),
+    ("setsyx", "curses.setsyx"),
+    ("setupterm", "curses.setupterm"),
+    ("start_color", "curses.start_color"),
+    ("termattrs", "curses.termattrs"),
+    ("termname", "curses.termname"),
+    ("tigetflag", "curses.tigetflag"),
+    ("tigetnum", "curses.tigetnum"),
+    ("tigetstr", "curses.tigetstr"),
+    ("tparm", "curses.tparm"),
+    ("typeahead", "curses.typeahead"),
+    ("unctrl", "curses.unctrl"),
+    ("ungetch", "curses.ungetch"),
+    ("ungetmouse", "curses.ungetmouse"),
+    ("use_env", "curses.use_env"),
+    ("A_ATTRIBUTES", "curses.A_ATTRIBUTES"),
+    ("A_NORMAL", "curses.A_NORMAL"),
+    ("A_STANDOUT", "curses.A_STANDOUT"),
+    ("A_UNDERLINE", "curses.A_UNDERLINE"),
+    ("A_REVERSE", "curses.A_REVERSE"),
+    ("A_BLINK", "curses.A_BLINK"),
+    ("A_DIM", "curses.A_DIM"),
+    ("A_BOLDW", "curses.A_BOLDW"),
+    ("A_ALTCHARSET", "curses.A_ALTCHARSET"),
+    ("A_INVIS", "curses.A_INVIS"),
+    ("A_PROTECT", "curses.A_PROTECT"),
+    ("A_HORIZONTAL", "curses.A_HORIZONTAL"),
+    ("A_LEFT", "curses.A_LEFT"),
+    ("A_LOW", "curses.A_LOW"),
+    ("A_RIGHT", "curses.A_RIGHT"),
+    ("A_TOP", "curses.A_TOP"),
+    ("A_VERTICAL", "curses.A_VERTICAL"),
+    ("OLOR_BLACK", "curses.OLOR_BLACK"),
+    ("OLOR_RED", "curses.OLOR_RED"),
+    ("OLOR_GREEN", "curses.OLOR_GREEN"),
+    ("OLOR_YELLOW", "curses.OLOR_YELLOW"),
+    ("OLOR_BLUE", "curses.OLOR_BLUE"),
+    ("OLOR_MAGENTA", "curses.OLOR_MAGENTA"),
+    ("OLOR_CYAN", "curses.OLOR_CYAN"),
+    ("OLOR_WHITE", "curses.OLOR_WHITE"),
+    ("ACS_ULCORNER", "curses.ACS_ULCORNER"),
+    ("ACS_LLCORNER", "curses.ACS_LLCORNER"),
+    ("ACS_URCORNER", "curses.ACS_URCORNER"),
+    ("ACS_LRCORNER", "curses.ACS_LRCORNER"),
+    ("ACS_LTEE", "curses.ACS_LTEE"),
+    ("ACS_RTEE", "curses.ACS_RTEE"),
+    ("ACS_BTEE", "curses.ACS_BTEE"),
+    ("ACS_TTEE", "curses.ACS_TTEE"),
+    ("ACS_HLINE", "curses.ACS_HLINE"),
+    ("ACS_VLINE", "curses.ACS_VLINE"),
+    ("ACS_PLUS", "curses.ACS_PLUS"),
+    ("ACS_S1", "curses.ACS_S1"),
+    ("ACS_S9", "curses.ACS_S9"),
+    ("ACS_DIAMOND", "curses.ACS_DIAMOND"),
+    ("ACS_CKBOARD", "curses.ACS_CKBOARD"),
+    ("ACS_DEGREE", "curses.ACS_DEGREE"),
+    ("ACS_PLMINUS", "curses.ACS_PLMINUS"),
+    ("ACS_BULLET", "curses.ACS_BULLET"),
+    ("ACS_LARROW", "curses.ACS_LARROW"),
+    ("ACS_RARROW", "curses.ACS_RARROW"),
+    ("ACS_DARROW", "curses.ACS_DARROW"),
+    ("ACS_UARROW", "curses.ACS_UARROW"),
+    ("ACS_BOARD", "curses.ACS_BOARD"),
+    ("ACS_LANTERN", "curses.ACS_LANTERN"),
+    ("ACS_BLOCK", "curses.ACS_BLOCK"),
+    # Python curses.ascii library
+    ("isalnum", "curses.ascii.isalnum"),
+    ("isalpha", "curses.ascii.isalpha"),
+    ("isascii", "curses.ascii.isascii"),
+    ("isblank", "curses.ascii.isblank"),
+    ("iscntrl", "curses.ascii.iscntrl"),
+    ("isdigit", "curses.ascii.isdigit"),
+    ("isgraph", "curses.ascii.isgraph"),
+    ("islower", "curses.ascii.islower"),
+    ("isprint", "curses.ascii.isprint"),
+    ("ispunct", "curses.ascii.ispunct"),
+    ("isspace", "curses.ascii.isspace"),
+    ("isupper", "curses.ascii.isupper"),
+    ("isxdigit", "curses.ascii.isxdigit"),
+    ("isctrl", "curses.ascii.isctrl"),
+    ("ismeta", "curses.ascii.ismeta"),
+    # Python errno library
+    ("EPERM", "errno.EPERM"),
+    ("ENOENT", "errno.ENOENT"),
+    ("ESRCH", "errno.ESRCH"),
+    ("EINTR", "errno.EINTR"),
+    ("EIO", "errno.EIO"),
+    ("ENXIO", "errno.ENXIO"),
+    ("E2BIG", "errno.E2BIG"),
+    ("ENOEXEC", "errno.ENOEXEC"),
+    ("EBADF", "errno.EBADF"),
+    ("ECHILD", "errno.ECHILD"),
+    ("EAGAIN", "errno.EAGAIN"),
+    ("ENOMEM", "errno.ENOMEM"),
+    ("EACCES", "errno.EACCES"),
+    ("EFAULT", "errno.EFAULT"),
+    ("ENOTBLK", "errno.ENOTBLK"),
+    ("EBUSY", "errno.EBUSY"),
+    ("EEXIST", "errno.EEXIST"),
+    ("EXDEV", "errno.EXDEV"),
+    ("ENODEV", "errno.ENODEV"),
+    ("ENOTDIR", "errno.ENOTDIR"),
+    ("EISDIR", "errno.EISDIR"),
+    ("EINVAL", "errno.EINVAL"),
+    ("ENFILE", "errno.ENFILE"),
+    ("EMFILE", "errno.EMFILE"),
+    ("ENOTTY", "errno.ENOTTY"),
+    ("ETXTBSY", "errno.ETXTBSY"),
+    ("EFBIG", "errno.EFBIG"),
+    ("ENOSPC", "errno.ENOSPC"),
+    ("ESPIPE", "errno.ESPIPE"),
+    ("EROFS", "errno.EROFS"),
+    ("EMLINK", "errno.EMLINK"),
+    ("EPIPE", "errno.EPIPE"),
+    ("EDOM", "errno.EDOM"),
+    ("ERANGE", "errno.ERANGE"),
+    ("EDEADLK", "errno.EDEADLK"),
+    ("ENAMETOOLONG", "errno.ENAMETOOLONG"),
+    ("ENOLCK", "errno.ENOLCK"),
+    ("ENOSYS", "errno.ENOSYS"),
+    ("ENOTEMPTY", "errno.ENOTEMPTY"),
+    ("ELOOP", "errno.ELOOP"),
+    ("EWOULDBLOCK", "errno.EWOULDBLOCK"),
+    ("ENOMSG", "errno.ENOMSG"),
+    ("EIDRM", "errno.EIDRM"),
+    ("ECHRNG", "errno.ECHRNG"),
+    ("EL2NSYNC", "errno.EL2NSYNC"),
+    ("EL3HLT", "errno.EL3HLT"),
+    ("EL3RST", "errno.EL3RST"),
+    ("ELNRNG", "errno.ELNRNG"),
+    ("EUNATCH", "errno.EUNATCH"),
+    ("ENOCSI", "errno.ENOCSI"),
+    ("EL2HLT", "errno.EL2HLT"),
+    ("EBADE", "errno.EBADE"),
+    ("EBADR", "errno.EBADR"),
+    ("EXFULL", "errno.EXFULL"),
+    ("ENOANO", "errno.ENOANO"),
+    ("EBADRQC", "errno.EBADRQC"),
+    ("EBADSLT", "errno.EBADSLT"),
+    ("EDEADLOCK", "errno.EDEADLOCK"),
+    ("EBFONT", "errno.EBFONT"),
+    ("ENOSTR", "errno.ENOSTR"),
+    ("ENODATA", "errno.ENODATA"),
+    ("ETIME", "errno.ETIME"),
+    ("ENOSR", "errno.ENOSR"),
+    ("ENONET", "errno.ENONET"),
+    ("ENOPKG", "errno.ENOPKG"),
+    ("EREMOTE", "errno.EREMOTE"),
+    ("ENOLINK", "errno.ENOLINK"),
+    ("EADV", "errno.EADV"),
+    ("ESRMNT", "errno.ESRMNT"),
+    ("ECOMM", "errno.ECOMM"),
+    ("EPROTO", "errno.EPROTO"),
+    ("EMULTIHOP", "errno.EMULTIHOP"),
+    ("EDOTDOT", "errno.EDOTDOT"),
+    ("EBADMSG", "errno.EBADMSG"),
+    ("EOVERFLOW", "errno.EOVERFLOW"),
+    ("ENOTUNIQ", "errno.ENOTUNIQ"),
+    ("EBADFD", "errno.EBADFD"),
+    ("EREMCHG", "errno.EREMCHG"),
+    ("ELIBACC", "errno.ELIBACC"),
+    ("ELIBBAD", "errno.ELIBBAD"),
+    ("ELIBSCN", "errno.ELIBSCN"),
+    ("ELIBMAX", "errno.ELIBMAX"),
+    ("ELIBEXEC", "errno.ELIBEXEC"),
+    ("EILSEQ", "errno.EILSEQ"),
+    ("ERESTART", "errno.ERESTART"),
+    ("ESTRPIPE", "errno.ESTRPIPE"),
+    ("EUSERS", "errno.EUSERS"),
+    ("ENOTSOCK", "errno.ENOTSOCK"),
+    ("EDESTADDRREQ", "errno.EDESTADDRREQ"),
+    ("EMSGSIZE", "errno.EMSGSIZE"),
+    ("EPROTOTYPE", "errno.EPROTOTYPE"),
+    ("ENOPROTOOPT", "errno.ENOPROTOOPT"),
+    ("EPROTONOSUPPORT", "errno.EPROTONOSUPPORT"),
+    ("ESOCKTNOSUPPORT", "errno.ESOCKTNOSUPPORT"),
+    ("EOPNOTSUPP", "errno.EOPNOTSUPP"),
+    ("EPFNOSUPPORT", "errno.EPFNOSUPPORT"),
+    ("EAFNOSUPPORT", "errno.EAFNOSUPPORT"),
+    ("EADDRINUSE", "errno.EADDRINUSE"),
+    ("EADDRNOTAVAIL", "errno.EADDRNOTAVAIL"),
+    ("ENETDOWN", "errno.ENETDOWN"),
+    ("ENETUNREACH", "errno.ENETUNREACH"),
+    ("ENETRESET", "errno.ENETRESET"),
+    ("ECONNABORTED", "errno.ECONNABORTED"),
+    ("ECONNRESET", "errno.ECONNRESET"),
+    ("ENOBUFS", "errno.ENOBUFS"),
+    ("EISCONN", "errno.EISCONN"),
+    ("ENOTCONN", "errno.ENOTCONN"),
+    ("ESHUTDOWN", "errno.ESHUTDOWN"),
+    ("ETOOMANYREFS", "errno.ETOOMANYREFS"),
+    ("ETIMEDOUT", "errno.ETIMEDOUT"),
+    ("ECONNREFUSED", "errno.ECONNREFUSED"),
+    ("EHOSTDOWN", "errno.EHOSTDOWN"),
+    ("EHOSTUNREACH", "errno.EHOSTUNREACH"),
+    ("EALREADY", "errno.EALREADY"),
+    ("EINPROGRESS", "errno.EINPROGRESS"),
+    ("ESTALE", "errno.ESTALE"),
+    ("EUCLEAN", "errno.EUCLEAN"),
+    ("ENOTNAM", "errno.ENOTNAM"),
+    ("ENAVAIL", "errno.ENAVAIL"),
+    ("EISNAM", "errno.EISNAM"),
+    ("EREMOTEIO", "errno.EREMOTEIO"),
+    ("EDQUOT", "errno.EDQUOT"),
+    # Python fcntl library
+    ("fcntl", "fcntl.fcntl"),
+    ("flock", "fcntl.lockf"),
+    ("lockf", "fcntl.lockf"),
+    ("LOCK_UN", "fcntl.LOCK_UN"),
+    ("LOCK_EX", "fcntl.LOCK_EX"),
+    ("LOCK_SH", "fcntl.LOCK_SH"),
+    ("LOCK_NB", "fcntl.LOCK_NB"),
+     # Python math library
     ("acos", "math.acos"),
     ("asin", "math.asin"),
     ("atan", "math.atan"),
@@ -75,9 +305,11 @@ funmappings = (
     ("fabs", "math.fabs"),
     ("floor", "math.floor"),
     ("fmod", "math.fmod"),
+    ("frexp", "math.frexp"),	# Calling conventions differ
     ("ldexp", "math.ldexp"),
     ("log10", "math.log10"),
     ("log", "math.log"),
+    ("modf", "math.modf"),	# Calling conventions differ
     ("pow", "math.pow"),
     ("sinh", "math.sinh"),
     ("sin", "math.sin"),
@@ -209,132 +441,20 @@ funmappings = (
     ("S_IROTH", "os.S_IROTH"),
     ("S_IWOTH", "os.S_IWOTH"),
     ("S_IXOTH", "os.S_IXOTH"),
+    # Python random library -- alas, C rand() doesn't map cleanly
+    ("srand48", "random.seed"),
+    ("srand", "random.seed"),
     # Python os.path library
     ("basename", "os.path.basename"),
     ("dirname", "os.path.dirname"),
-    # Python atexit library
-    ("atexit", "atexit.register"),
+    # Python string library
+    ("toupper", "string.upper"),
+    ("tolower", "string.lower"),
     # Python sys library
     ("argv", "sys.argv"),
     ("stdin", "sys.stdin"),
     ("stdout", "sys.stdout"),
     ("stderr", "sys.stderr"),
-    # Python curses bindings emulate the C API rather exactly.  These are
-    # the module functions.
-    ("baudrate", "curses.baudrate"),
-    ("beep", "curses.beep"),
-    ("can_change_color", "curses.can_change_color"),
-    ("cbreak", "curses.cbreak"),
-    ("color_content", "curses.color_content"),
-    ("color_pair", "curses.color_pair"),
-    ("curs_set", "curses.curs_set"),
-    ("def_prog_mode", "curses.def_prog_mode"),
-    ("def_shell_mode", "curses.def_shell_mode"),
-    ("delay_output", "curses.delay_output"),
-    ("doupdate", "curses.doupdate"),
-    ("echo", "curses.echo"),
-    ("endwin", "curses.endwin"),
-    ("erasechar", "curses.erasechar"),
-    ("filter", "curses.filter"),
-    ("flash", "curses.flash"),
-    ("flushinp", "curses.flushinp"),
-    ("getmouse", "curses.getmouse"),
-    ("getsyx", "curses.getsyx"),		# Calling convention is differen)t
-    ("getwin", "curses.getwin"),
-    ("has_colors", "curses.has_colors"),
-    ("has_ic", "curses.has_ic"),
-    ("has_il", "curses.has_il"),
-    ("has_key", "curses.has_key"),
-    ("init_color", "curses.init_color"),
-    ("init_pair", "curses.init_pair"),
-    ("initscr", "curses.initscr"),	# Must make this a global
-    ("isendwin", "curses.isendwin"),
-    ("keyname", "curses.keyname"),
-    ("killchar", "curses.killchar"),
-    ("longname", "curses.longname"),
-    ("meta", "curses.meta"),
-    ("mouseinterval", "curses.mouseinterval"),
-    ("mousemask", "curses.mousemask"),
-    ("napms", "curses.napms"),
-    ("newpad", "curses.newpad"),
-    ("newwin", "curses.newwin"),
-    ("nl", "curses.nl"),
-    ("nocbreak", "curses.nocbreak"),
-    ("noecho", "curses.noecho"),
-    ("nonl", "curses.nonl"),
-    ("noqiflush", "curses.noqiflush"),
-    ("noraw", "curses.noraw"),
-    ("pair_content", "curses.pair_content"),
-    ("pair_number", "curses.pair_number"),
-    ("putp", "curses.putp"),
-    ("qiflush", "curses.qiflush"),
-    ("raw", "curses.raw"),
-    ("reset_prog_mode", "curses.reset_prog_mode"),
-    ("reset_shell_mode", "curses.reset_shell_mode"),
-    ("setsyx", "curses.setsyx"),
-    ("setupterm", "curses.setupterm"),
-    ("start_color", "curses.start_color"),
-    ("termattrs", "curses.termattrs"),
-    ("termname", "curses.termname"),
-    ("tigetflag", "curses.tigetflag"),
-    ("tigetnum", "curses.tigetnum"),
-    ("tigetstr", "curses.tigetstr"),
-    ("tparm", "curses.tparm"),
-    ("typeahead", "curses.typeahead"),
-    ("unctrl", "curses.unctrl"),
-    ("ungetch", "curses.ungetch"),
-    ("ungetmouse", "curses.ungetmouse"),
-    ("use_env", "curses.use_env"),
-    ("A_ATTRIBUTES", "curses.A_ATTRIBUTES"),
-    ("A_NORMAL", "curses.A_NORMAL"),
-    ("A_STANDOUT", "curses.A_STANDOUT"),
-    ("A_UNDERLINE", "curses.A_UNDERLINE"),
-    ("A_REVERSE", "curses.A_REVERSE"),
-    ("A_BLINK", "curses.A_BLINK"),
-    ("A_DIM", "curses.A_DIM"),
-    ("A_BOLDW", "curses.A_BOLDW"),
-    ("A_ALTCHARSET", "curses.A_ALTCHARSET"),
-    ("A_INVIS", "curses.A_INVIS"),
-    ("A_PROTECT", "curses.A_PROTECT"),
-    ("A_HORIZONTAL", "curses.A_HORIZONTAL"),
-    ("A_LEFT", "curses.A_LEFT"),
-    ("A_LOW", "curses.A_LOW"),
-    ("A_RIGHT", "curses.A_RIGHT"),
-    ("A_TOP", "curses.A_TOP"),
-    ("A_VERTICAL", "curses.A_VERTICAL"),
-    ("OLOR_BLACK", "curses.OLOR_BLACK"),
-    ("OLOR_RED", "curses.OLOR_RED"),
-    ("OLOR_GREEN", "curses.OLOR_GREEN"),
-    ("OLOR_YELLOW", "curses.OLOR_YELLOW"),
-    ("OLOR_BLUE", "curses.OLOR_BLUE"),
-    ("OLOR_MAGENTA", "curses.OLOR_MAGENTA"),
-    ("OLOR_CYAN", "curses.OLOR_CYAN"),
-    ("OLOR_WHITE", "curses.OLOR_WHITE"),
-    ("ACS_ULCORNER", "curses.ACS_ULCORNER"),
-    ("ACS_LLCORNER", "curses.ACS_LLCORNER"),
-    ("ACS_URCORNER", "curses.ACS_URCORNER"),
-    ("ACS_LRCORNER", "curses.ACS_LRCORNER"),
-    ("ACS_LTEE", "curses.ACS_LTEE"),
-    ("ACS_RTEE", "curses.ACS_RTEE"),
-    ("ACS_BTEE", "curses.ACS_BTEE"),
-    ("ACS_TTEE", "curses.ACS_TTEE"),
-    ("ACS_HLINE", "curses.ACS_HLINE"),
-    ("ACS_VLINE", "curses.ACS_VLINE"),
-    ("ACS_PLUS", "curses.ACS_PLUS"),
-    ("ACS_S1", "curses.ACS_S1"),
-    ("ACS_S9", "curses.ACS_S9"),
-    ("ACS_DIAMOND", "curses.ACS_DIAMOND"),
-    ("ACS_CKBOARD", "curses.ACS_CKBOARD"),
-    ("ACS_DEGREE", "curses.ACS_DEGREE"),
-    ("ACS_PLMINUS", "curses.ACS_PLMINUS"),
-    ("ACS_BULLET", "curses.ACS_BULLET"),
-    ("ACS_LARROW", "curses.ACS_LARROW"),
-    ("ACS_RARROW", "curses.ACS_RARROW"),
-    ("ACS_DARROW", "curses.ACS_DARROW"),
-    ("ACS_UARROW", "curses.ACS_UARROW"),
-    ("ACS_BOARD", "curses.ACS_BOARD"),
-    ("ACS_LANTERN", "curses.ACS_LANTERN"),
-    ("ACS_BLOCK", "curses.ACS_BLOCK"),
 )
 
 # These are C functions that need to turn into method calls on their first arg
@@ -347,7 +467,8 @@ methodmappings = (
     ("fseek", "seek", None),
     ("ftell", "tell", None),
     ("ftruncate", "truncate", None),
-    # Curses library.  This is all the methods on the Windows Objects page
+    # Curses library.  This is all the methods on the Windows Objects page.
+    # FIXME: curses mapping is far from complete
     ("waddch",  "addch", "curses"),
     ("waddnstr", "addnstr", "curses"),
     ("waddstr", "addstr", "curses"),
@@ -420,6 +541,10 @@ methodmappings = (
     ("wvline", "vline", "curses"),
     )
 
+falsefriends = (
+    "frexp", "getsyx", "getmaxyx", "ioctl", "modf",
+    )
+
 # These have to be applied to the entire file without breaking it into regions
 file_transformations = (
     # Simple initializers to tuples
@@ -455,7 +580,7 @@ repeat_transformations = (
     # Group 3: What we're doing here is trying to get rid of variable
     # declarations that don't have initializer parts.
     # Scalar-vars just after the type and before a comma go away.
-    (r"(\n[ \t]*(?:%(type)s))(\s*%(id)s),", r"\1"),
+    (r"(\n[ \t]*(?:%(type)s))(\s*%(id)s),", r"\1 "),
     # Scalar-vars just after type and before a semi go away, but semi stays.
     (r"(\n[ \t]*(?:%(type)s))(\s*%(id)s);", r"\1;"),
     # Class-vars after class names and before comma or semi get an initializer.
@@ -757,6 +882,9 @@ def ctopy(input):
                                                 regions[i])
                         if module not in importlist and module:
                             importlist.append(module)
+                for name in falsefriends:
+                    if re.search(r"\b" + name + r"\b\(", regions[i]):
+                        sys.stderr.write("warning: %s calling conventions differ between C and Python." % name)
                 if debug >= 2:
                     print "Doing post transformations"
                 regions[i] = single_apply(post_transformations, regions[i])
