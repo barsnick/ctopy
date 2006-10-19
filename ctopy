@@ -29,7 +29,6 @@ shorthands = {
 
 # C functions and constants to be mapped into Python standard library bindings.
 funmappings = (
-    # OK before this point
     # File object methods (from C stdlib).
     (r"\bfclose\(%(farg)s\)", r"\1.close()", None),
     (r"\bfflush\(%(farg)s\)", r"\1.flush()", None),
@@ -69,10 +68,9 @@ funmappings = (
     (r"\baddch\(", r"stdscr.addch(", "curses"),
     #addchnstr               curs_addchstr(3X)
     #addchstr                curs_addchstr(3X)
-    (r"\baddnstr(", r"stdscr.addnstr(", "curses"),
+    (r"\baddnstr\(", r"stdscr.addnstr(", "curses"),
     #addnwstr                curs_addwstr(3X)
     (r"\baddstr\(", r"stdscr.addstr(", "curses"),
-    # OK after this point
     #addwstr                 curs_addwstr(3X)
     #assume_default_colors   default_colors(3X)*
     #attr_get                curs_attr(3X)
