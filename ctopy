@@ -12,7 +12,8 @@ import sys, re
 
 stringify = []
 
-printflike = ["printf", "sprintf", "vfprintf"]
+printflike = ["printf", "sprintf", "vfprintf",
+              "printw", "mvprintw", "wprintw", "mvwprintw"]
 
 shorthands = {
     'id' : r"[a-zA-Z_][a-zA-Z0-9._]*",
@@ -172,7 +173,7 @@ funmappings = (
     (r"\binsertln\(", r"stdscr.insertln(", "curses"),
     (r"\binsnstr\(", r"stdscr.insnstr(", "curses"),
     (r"\binsstr\(", r"stdscr.insstr(", "curses"),
-    (r"\binstr\(", r"stdscr.instr(", "curses"),
+    (r"\binstr\(%(arg)s\)", r"\1 = stdscr.instr()", "curses"),
     (r"\bintrflush\(\)", r"curses.intrflush()", "curses"),
     #inwstr                  curs_inwstr(3X)
     (r"\bis_linetouched\(%(arg)s", r"\1.is_linetouched(", "curses"),# EXCEPTION
@@ -221,64 +222,65 @@ funmappings = (
     #mvin_wch                curs_in_wch(3X)
     #mvin_wchnstr            curs_in_wchstr(3X)
     #mvin_wchstr             curs_in_wchstr(3X)
-    #                 mvinch                  curs_inch(3X)
-    #                 mvinchnstr              curs_inchstr(3X)
-    #                 mvinchstr               curs_inchstr(3X)
-    #                 mvinnstr                curs_instr(3X)
-    #                 mvinnwstr               curs_inwstr(3X)
-    #                 mvins_nwstr             curs_ins_wstr(3X)
-    #                 mvins_wch               curs_ins_wch(3X)
-    #                 mvins_wstr              curs_ins_wstr(3X)
-    #                 mvinsch                 curs_insch(3X)
-    #                 mvinsnstr               curs_insstr(3X)
-    #                 mvinsstr                curs_insstr(3X)
-    #                 mvinstr                 curs_instr(3X)
-    #                 mvinwstr                curs_inwstr(3X)
-    #                 mvprintw                curs_printw(3X)
-    #                 mvscanw                 curs_scanw(3X)
-    #                 mvvline                 curs_border(3X)
-    #                 mvvline_set             curs_border_set(3X)
-    #                 mvwadd_wch              curs_add_wch(3X)
-    #                 mvwadd_wchnstr          curs_add_wchstr(3X)
-    #                 mvwadd_wchstr           curs_add_wchstr(3X)
-    #                 mvwaddch                curs_addch(3X)
-    #                 mvwaddchnstr            curs_addchstr(3X)
-    #                 mvwaddchstr             curs_addchstr(3X)
-    #                 mvwaddnstr              curs_addstr(3X)
-    #                 mvwaddnwstr             curs_addwstr(3X)
-    #                 mvwaddstr               curs_addstr(3X)
-    #                 mvwaddwstr              curs_addwstr(3X)
-    #                 mvwchgat                curs_attr(3X)
-    #                 mvwdelch                curs_delch(3X)
-    #                 mvwget_wch              curs_get_wch(3X)
-    #                 mvwget_wstr             curs_get_wstr(3X)
-    #                 mvwgetch                curs_getch(3X)
-    #                 mvwgetn_wstr            curs_get_wstr(3X)
-    #                 mvwgetnstr              curs_getstr(3X)
-    #                 mvwgetstr               curs_getstr(3X)
-    #                 mvwhline                curs_border(3X)
-    #                 mvwhline_set            curs_border_set(3X)
-    #                 mvwin                   curs_window(3X)
-    #                 mvwin_wch               curs_in_wch(3X)
-    #                 mvwin_wchnstr           curs_in_wchstr(3X)
-    #                 mvwin_wchstr            curs_in_wchstr(3X)
-    #                 mvwinch                 curs_inch(3X)
-    #                 mvwinchnstr             curs_inchstr(3X)
-    #                 mvwinchstr              curs_inchstr(3X)
-    #                 mvwinnstr               curs_instr(3X)
-    #                 mvwinnwstr              curs_inwstr(3X)
-    #                 mvwins_nwstr            curs_ins_wstr(3X)
-    #                 mvwins_wch              curs_ins_wch(3X)
-    #                 mvwins_wstr             curs_ins_wstr(3X)
-    #                 mvwinsch                curs_insch(3X)
-    #                 mvwinsnstr              curs_insstr(3X)
-    #                 mvwinsstr               curs_insstr(3X)
-    #                 mvwinstr                curs_instr(3X)
-    #                 mvwinwstr               curs_inwstr(3X)
-    #                 mvwprintw               curs_printw(3X)
-    #                 mvwscanw                curs_scanw(3X)
-    #                 mvwvline                curs_border(3X)
-    #                 mvwvline_set            curs_border_set(3X)
+    (r"\bmvinch\(", r"stdscr.inch(", "curses"),		# NONTRIVIAL
+    (r"\bmvinchnstr\(", r"stdscr.instr(", "curses"),	# NONTRIVIAL
+    (r"\bmvinchstr\(", r"stdscr.instr(", "curses"),	# NONTRIVIAL
+    (r"\bmvinnstr\(", r"stdscr.instr(", "curses"),	# NONTRIVIAL
+    #mvinnwstr               curs_inwstr(3X)
+    #mvins_nwstr             curs_ins_wstr(3X)
+    #mvins_wch               curs_ins_wch(3X)
+    #mvins_wstr              curs_ins_wstr(3X)
+    (r"\bmvinsch\(", r"stdscr.insch(", "curses"),	# NONTRIVIAL
+    (r"\bmvinsnstr\(", r"stdscr.instr(", "curses"),	# NONTRIVIAL
+    (r"\bmvinsstr\(", r"stdscr.instr(", "curses"),	# NONTRIVIAL
+    (r"\bmvinstr\(", r"stdscr.instr(", "curses"),	# NONTRIVIAL
+    #mvwinwstr               curs_inwstr(3X)
+    (r"\bmvprintw\(", r"stdscr.addstr(", "curses"),	# NONTRIVIAL
+    # mvscanw                 curs_scanw(3X)
+    (r"\bmvvline\(", r"stdscr.vline(", "curses"),	# NONTRIVIAL
+    #mvvline_set             curs_border_set(3X)
+    #mvwadd_wch              curs_add_wch(3X)
+    #mvwadd_wchnstr          curs_add_wchstr(3X)
+    #mvwadd_wchstr           curs_add_wchstr(3X)
+    (r"\bmvwaddch\(%(arg)s", r"\1.addch(", "curses"),	# NONTRIVIAL
+    #mvwaddchnstr            curs_addchstr(3X)
+    #mvwaddchstr             curs_addchstr(3X)
+    (r"\bmvwaddnstr\(%(arg)s", r"\1.addnstr(", "curses"),	# NONTRIVIAL
+    #mvwaddnwstr             curs_addwstr(3X)
+    (r"\bmvwaddstr\(%(arg)s", r"\1.addstr(", "curses"),	# NONTRIVIAL
+    #mvwaddwstr              curs_addwstr(3X)
+    #mvwchgat                curs_attr(3X)
+    (r"\bmvwdelch\(%(arg)s", r"\1.delch(", "curses"),	# NONTRIVIAL
+    #mvwget_wch              curs_get_wch(3X)
+    #mvwget_wstr             curs_get_wstr(3X)
+    (r"\bmvwgetch\(%(arg)s", r"\1.getch(", "curses"),	# NONTRIVIAL
+    #mvwgetn_wstr            curs_get_wstr(3X)
+    (r"\bmvwgetnstr\(%(arg)s", r"\1.getstr(", "curses"),	# NONTRIVIAL
+    (r"\bmvwgetstr\(%(arg)s", r"\1.getstr(", "curses"),	# NONTRIVIAL
+    (r"\bmvwhline\(%(arg)s", r"\1.hline(", "curses"),	# NONTRIVIAL
+    #mvwhline_set            curs_border_set(3X)
+    (r"\bmvwin\(%(arg)s", r"\1.mvwin(", "curses"),	# EXCEPTION
+    #mvwin_wch               curs_in_wch(3X)
+    #mvwin_wchnstr           curs_in_wchstr(3X)
+    #mvwin_wchstr            curs_in_wchstr(3X)
+    (r"\bmvwinch\(%(arg)s", r"\1.inch(", "curses"),	# NONTRIVIAL
+    #mvwinchnstr             curs_inchstr(3X)
+    #mvwinchstr              curs_inchstr(3X)
+    (r"\bmvwinnstr\(%(arg)s%(arg)s%(arg)s",	# NONTRIVIAL
+     r"\3 = \1.instr(\1, \2", "curses"),
+    #mvwinnwstr              curs_inwstr(3X)
+    #mvwins_nwstr            curs_ins_wstr(3X)
+    #mvwins_wch              curs_ins_wch(3X)
+    #mvwins_wstr             curs_ins_wstr(3X)
+    (r"\bmvwinsch\(%(arg)s", r"\1.insch(", "curses"),	# NONTRIVIAL
+    (r"\bmvwinsnstr\(%(arg)s", r"\1.insnstr(", "curses"),	# NONTRIVIAL
+    (r"\bmvwinsstr\(%(arg)s", r"\1.insstr(", "curses"),	# NONTRIVIAL
+    (r"\bmvwinstr\(%(arg)s", r"\1.instr(", "curses"),	# NONTRIVIAL
+    #mvwinwstr               curs_inwstr(3X)
+    (r"\bmvwprintw\(%(arg)s", r"\1.addstr(", "curses"),	# NONTRIVIAL
+    #mvwscanw                curs_scanw(3X)
+    (r"\bmvwvline\(%(arg)s", r"\1.vline(", "curses"),	# NONTRIVIAL
+    #mvwvline_set            curs_border_set(3X)
     (r"\bnapms\(", r"curses.napms(", "curses"),
     (r"\bnewpad\(", r"curses.newpad(", "curses"),
     #newterm                 curs_initscr(3X)
