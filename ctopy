@@ -543,7 +543,7 @@ funmappings = (
     (r"\bisctrl\(", r"curses.ascii.isctrl(", "curses.ascii"),
     (r"\bismeta\(", r"curses.ascii.ismeta(", "curses.ascii"),
     # Python errno library
-    (r"\bEPERM\b", r"errno.EPERM"),
+    (r"\bEPERM\b", r"errno.EPERM", "errno"),
     (r"\bENOENT\b", r"errno.ENOENT", "errno"),
     (r"\bESRCH\b", r"errno.ESRCH", "errno"),
     (r"\bEINTR\b", r"errno.EINTR", "errno"),
