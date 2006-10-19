@@ -287,37 +287,37 @@ funmappings = (
     (r"\bnewwin\(", r"curses.newwin(", "curses"),
     (r"\bnl\(", r"curses.nl(", "curses"),
     (r"\bnocbreak\(", r"curses.nocbreak(", "curses"),
-    (r"\bnodelay\(", r"curses.nodelay(", "curses"),
+    (r"\bnodelay\(%(arg)s", r"\1.nodelay(", "curses"),	# EXCEPTION
     (r"\bnoecho\(", r"curses.noecho(", "curses"),
     (r"\bnonl\(", r"curses.nonl(", "curses"),
     (r"\bnoqiflush\(", r"curses.noqiflush(", "curses"),
     (r"\bnoraw\(", r"curses.noraw(", "curses"),
-    (r"\bnotimeout\(", r"curses.notimeout(", "curses"),
-    #                 overlay                 curs_overlay(3X)
-    #                 overwrite               curs_overlay(3X)
-    #                 pair_content            curs_color(3X)
-    #                 pechochar               curs_pad(3X)
-    #                 pnoutrefresh            curs_pad(3X)
-    #                 prefresh                curs_pad(3X)
-    #                 printw                  curs_printw(3X)
-    #                 putp                    curs_terminfo(3X)
-    #                 putwin                  curs_util(3X)
+    (r"\bnotimeout\(%(arg)s", r"\1.notimeout(", "curses"),
+    (r"\boverlay\(%(arg)s", r"\1.overlay(", "curses"),
+    (r"\boverwrite\(%(arg)s", r"\1.overwrite(", "curses"),
+    (r"\bpair_content\(", r"curses.pair_content(", "curses"),
+    #pechochar               curs_pad(3X)
+    #pnoutrefresh            curs_pad(3X)
+    #prefresh                curs_pad(3X)
+    (r"\bprintw\(%(arg)s", r"\1.addstr(", "curses"),	# NONTRIVIAL
+    #putp                    curs_terminfo(3X)
+    #putwin                  curs_util(3X)
     (r"\bqiflush\(", r"curses.qiflush(", "curses"),
     (r"\braw\(", r"curses.raw(", "curses"),
-    #                 redrawwin               curs_refresh(3X)
-    #                 refresh                 curs_refresh(3X)
-    #                 reset_prog_mode         curs_kernel(3X)
-    #                 reset_shell_mode        curs_kernel(3X)
-    #                 resetty                 curs_kernel(3X)
-    #                 resizeterm              resizeterm(3X)*
-    #                 restartterm             curs_terminfo(3X)
-    #                 ripoffline              curs_kernel(3X)
-    #                 savetty                 curs_kernel(3X)
-    #                 scanw                   curs_scanw(3X)
-    #                 scr_dump                curs_scr_dump(3X)
-    #                 scr_init                curs_scr_dump(3X)
-    #                 scr_restore             curs_scr_dump(3X)
-    #                 scr_set                 curs_scr_dump(3X)
+    (r"\bredrawwin\(%(arg)s", r"\1.redrawwin(", "curses"),	# EXCEPTION
+    (r"\brefresh\(", r"stdscr.refresh(", "curses"),
+    (r"\breset_prog_mode\(", r"curses.reset_prog_mode(", "curses"),
+    (r"\breset_shell_mode\(", r"curses.reset_shell_mode(", "curses"),
+    #resetty                 curs_kernel(3X)
+    #resizeterm              resizeterm(3X)*
+    #restartterm             curs_terminfo(3X)
+    #ripoffline              curs_kernel(3X)
+    #savetty                 curs_kernel(3X)
+    #scanw                   curs_scanw(3X)
+    #scr_dump                curs_scr_dump(3X)
+    #scr_init                curs_scr_dump(3X)
+    #scr_restore             curs_scr_dump(3X)
+    #scr_set                 curs_scr_dump(3X)
     #                 scrl                    curs_scroll(3X)
     #                 scroll                  curs_scroll(3X)
     #                 scrollok                curs_outopts(3X)
