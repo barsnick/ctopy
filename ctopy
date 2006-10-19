@@ -20,559 +20,852 @@ shorthands = {
     'id' : r"[a-zA-Z_][a-zA-Z0-9._]*",
     'exp' : r"[a-zA-Z0-9._\-+\*/]+",
     'type' : r"\bvoid\b|\bint\b|\bbool\b|\bchar\b|\bshort\b|\bdouble\b|\blong\b|\bfloat\b|\btime_t\b|\bFILE\b|bWINDOW\b",
-    'class' : "\b__dummyclass__\b",
-    'ind' : "(\n[ \t]*)",		# Whitespace at start of line
-    'eol' : "[ \t]*(?=\n|\Z)",		# Whitespace to end of line or comment
+    'class' : r"\b__dummyclass__\b",
+    'ind' : r"(\n[ \t]*)",		# Whitespace at start of line
+    'eol' : r"[ \t]*(?=\n|\Z)",		# Whitespace to end of line or comment
+    'arg' : r"([^,]+),\s*",		# initial or medial argument
+    'farg' : r"([^)]+)",			# final argument
 }
 
 # C functions and constants to be mapped into Python standard library bindings.
-# This list is explicit because sometimes there are slight name changes...
-# and because explicit is better than implicit.
 funmappings = (
+    # File object methods (from C stdlib).
+    (r"\bfclose\(%(farg)s\)", r"\1.close()", None),
+    (r"\bfflush\(%(farg)s\)", r"\1.flush()", None),
+    (r"\bfileno\(%(farg)s\)", r"\1.fileno()", None),
+    (r"\bfprintf\(%(arg)s\)", r"\1.write()", None),
+    (r"\bfseek\(%(arg)s", r"\1.seek(", None),
+    (r"\bftell\(%(farg)s\)", r"\1.tell()", None),
+    (r"\bftruncate\(%(arg)s", r"\1.truncate(", None),
     # Python atexit library
-    ("atexit", "atexit.register"),
+    (r"\batexit\(", r"atexit.register(", "atexit"),
     # Python crypt library
-    ("crypt", "crypt.crypt"),
-    # Python curses bindings emulate the C API rather exactly.  These are
-    # the module functions.
-    ("baudrate", "curses.baudrate"),
-    ("beep", "curses.beep"),
-    ("can_change_color", "curses.can_change_color"),
-    ("cbreak", "curses.cbreak"),
-    ("color_content", "curses.color_content"),
-    ("color_pair", "curses.color_pair"),
-    ("curs_set", "curses.curs_set"),
-    ("def_prog_mode", "curses.def_prog_mode"),
-    ("def_shell_mode", "curses.def_shell_mode"),
-    ("delay_output", "curses.delay_output"),
-    ("doupdate", "curses.doupdate"),
-    ("echo", "curses.echo"),
-    ("endwin", "curses.endwin"),
-    ("erasechar", "curses.erasechar"),
-    ("filter", "curses.filter"),
-    ("flash", "curses.flash"),
-    ("flushinp", "curses.flushinp"),
-    ("getmouse", "curses.getmouse"),
-    ("getsyx", "curses.getsyx"),		# Calling convention is different
-    ("getwin", "curses.getwin"),
-    ("has_colors", "curses.has_colors"),
-    ("has_ic", "curses.has_ic"),
-    ("has_il", "curses.has_il"),
-    ("has_key", "curses.has_key"),
-    ("init_color", "curses.init_color"),
-    ("init_pair", "curses.init_pair"),
-    ("initscr", "curses.initscr"),	# Must make this a global
-    ("isendwin", "curses.isendwin"),
-    ("keyname", "curses.keyname"),
-    ("killchar", "curses.killchar"),
-    ("longname", "curses.longname"),
-    ("meta", "curses.meta"),
-    ("mouseinterval", "curses.mouseinterval"),
-    ("mousemask", "curses.mousemask"),
-    ("napms", "curses.napms"),
-    ("newpad", "curses.newpad"),
-    ("newwin", "curses.newwin"),
-    ("nl", "curses.nl"),
-    ("nocbreak", "curses.nocbreak"),
-    ("noecho", "curses.noecho"),
-    ("nonl", "curses.nonl"),
-    ("noqiflush", "curses.noqiflush"),
-    ("noraw", "curses.noraw"),
-    ("pair_content", "curses.pair_content"),
-    ("pair_number", "curses.pair_number"),
-    ("putp", "curses.putp"),
-    ("qiflush", "curses.qiflush"),
-    ("raw", "curses.raw"),
-    ("reset_prog_mode", "curses.reset_prog_mode"),
-    ("reset_shell_mode", "curses.reset_shell_mode"),
-    ("setsyx", "curses.setsyx"),
-    ("setupterm", "curses.setupterm"),
-    ("start_color", "curses.start_color"),
-    ("termattrs", "curses.termattrs"),
-    ("termname", "curses.termname"),
-    ("tigetflag", "curses.tigetflag"),
-    ("tigetnum", "curses.tigetnum"),
-    ("tigetstr", "curses.tigetstr"),
-    ("tparm", "curses.tparm"),
-    ("typeahead", "curses.typeahead"),
-    ("unctrl", "curses.unctrl"),
-    ("ungetch", "curses.ungetch"),
-    ("ungetmouse", "curses.ungetmouse"),
-    ("use_env", "curses.use_env"),
-    ("A_ATTRIBUTES", "curses.A_ATTRIBUTES"),
-    ("A_NORMAL", "curses.A_NORMAL"),
-    ("A_STANDOUT", "curses.A_STANDOUT"),
-    ("A_UNDERLINE", "curses.A_UNDERLINE"),
-    ("A_REVERSE", "curses.A_REVERSE"),
-    ("A_BLINK", "curses.A_BLINK"),
-    ("A_DIM", "curses.A_DIM"),
-    ("A_BOLDW", "curses.A_BOLDW"),
-    ("A_ALTCHARSET", "curses.A_ALTCHARSET"),
-    ("A_INVIS", "curses.A_INVIS"),
-    ("A_PROTECT", "curses.A_PROTECT"),
-    ("A_HORIZONTAL", "curses.A_HORIZONTAL"),
-    ("A_LEFT", "curses.A_LEFT"),
-    ("A_LOW", "curses.A_LOW"),
-    ("A_RIGHT", "curses.A_RIGHT"),
-    ("A_TOP", "curses.A_TOP"),
-    ("A_VERTICAL", "curses.A_VERTICAL"),
-    ("OLOR_BLACK", "curses.OLOR_BLACK"),
-    ("OLOR_RED", "curses.OLOR_RED"),
-    ("OLOR_GREEN", "curses.OLOR_GREEN"),
-    ("OLOR_YELLOW", "curses.OLOR_YELLOW"),
-    ("OLOR_BLUE", "curses.OLOR_BLUE"),
-    ("OLOR_MAGENTA", "curses.OLOR_MAGENTA"),
-    ("OLOR_CYAN", "curses.OLOR_CYAN"),
-    ("OLOR_WHITE", "curses.OLOR_WHITE"),
-    ("ACS_ULCORNER", "curses.ACS_ULCORNER"),
-    ("ACS_LLCORNER", "curses.ACS_LLCORNER"),
-    ("ACS_URCORNER", "curses.ACS_URCORNER"),
-    ("ACS_LRCORNER", "curses.ACS_LRCORNER"),
-    ("ACS_LTEE", "curses.ACS_LTEE"),
-    ("ACS_RTEE", "curses.ACS_RTEE"),
-    ("ACS_BTEE", "curses.ACS_BTEE"),
-    ("ACS_TTEE", "curses.ACS_TTEE"),
-    ("ACS_HLINE", "curses.ACS_HLINE"),
-    ("ACS_VLINE", "curses.ACS_VLINE"),
-    ("ACS_PLUS", "curses.ACS_PLUS"),
-    ("ACS_S1", "curses.ACS_S1"),
-    ("ACS_S9", "curses.ACS_S9"),
-    ("ACS_DIAMOND", "curses.ACS_DIAMOND"),
-    ("ACS_CKBOARD", "curses.ACS_CKBOARD"),
-    ("ACS_DEGREE", "curses.ACS_DEGREE"),
-    ("ACS_PLMINUS", "curses.ACS_PLMINUS"),
-    ("ACS_BULLET", "curses.ACS_BULLET"),
-    ("ACS_LARROW", "curses.ACS_LARROW"),
-    ("ACS_RARROW", "curses.ACS_RARROW"),
-    ("ACS_DARROW", "curses.ACS_DARROW"),
-    ("ACS_UARROW", "curses.ACS_UARROW"),
-    ("ACS_BOARD", "curses.ACS_BOARD"),
-    ("ACS_LANTERN", "curses.ACS_LANTERN"),
-    ("ACS_BLOCK", "curses.ACS_BLOCK"),
+    (r"\bcrypt\(", r"crypt.crypt(", "crypt"),
+    # Curses library.  Below are all function calls listed in the
+    # ncurses(3) version 5.5 manual page in the order they are listed.
+    # The ones we don't translate have been left in as comments,
+    # pending future improvements.  The largest category of things not
+    # translated is the wide-character support; it's possible there's
+    # an easy way to map this, but I don't have a need for it.
+    # Mappings marked "EXCEPTION" violate the convention that the C names
+    # of window methods begin with 'w'. Mappings marked "NONTRIVIAL"
+    # map a C entry point into a Python entry point with a different name,
+    # usually toi throw away a length argument Python doesn't need.
+    (r"\bCOLOR_PAIR\(", "curses.color_pair(", "curses"),
+    (r"\bPAIR_NUMBER\(", "curses.pair_number(", "curses"),
+    #_nc_tracebits           curs_trace(3X)*
+    #_traceattr              curs_trace(3X)*
+    #_traceattr2             curs_trace(3X)*
+    #_tracechar              curs_trace(3X)*
+    #_tracechtype            curs_trace(3X)*
+    #_tracechtype2           curs_trace(3X)*
+    #_tracedump              curs_trace(3X)*
+    #_tracef                 curs_trace(3X)*
+    #_tracemouse             curs_trace(3X)*
+    #add_wch                 curs_add_wch(3X)
+    #add_wchnstr             curs_add_wchstr(3X)
+    #add_wchstr              curs_add_wchstr(3X)
+    (r"\baddch\(", r"stdscr.addch(", "curses"),
+    #addchnstr               curs_addchstr(3X)
+    #addchstr                curs_addchstr(3X)
+    (r"\baddnstr(", r"stdscr.addnstr(", "curses"),
+    #addnwstr                curs_addwstr(3X)
+    (r"\baddstr\(", r"stdscr.addstr(", "curses"),
+    #addwstr                 curs_addwstr(3X)
+    #assume_default_colors   default_colors(3X)*
+    #attr_get                curs_attr(3X)
+    (r"\battr_off\(", r"stdscr.attrof(", r"curses"),
+    (r"\battr_on\(", r"stdscr.attron(", r"curses"),
+    (r"\battr_set\(", r"stdscr.attrset(", r"curses"),
+    (r"\battroff\(", r"stdscr.attrof(", r"curses"),
+    (r"\battron\(", r"stdscr.attron(", r"curses"),
+    (r"\battrset\(", r"stdscr.attrset(", r"curses"),
+    (r"\bbaudrate\(", r"curses.baudrate(", r"curses"),
+    (r"\bbeep\(", r"curses.beep(", r"curses"),
+    (r"\bbkgd\(", r"stdscr.bkgd(", r"curses"),
+    (r"\bbkgdset\(", r"stsdcr.bkgdset(", r"curses"),
+    #bkgrnd                  curs_bkgrnd(3X)
+    #bkgrndset               curs_bkgrnd(3X)
+    (r"\bborder\(", r"stdscr.border(", r"curses"), 
+    #border_set              curs_border_set(3X)
+    (r"\bbox\(%(arg)s", r"\1.box(", r"curses"),		# EXCEPTION
+    #box_set                 curs_border_set(3X)
+    (r"\bcan_change_color\(", r"curses.can_change_color(", r"curses"),
+    (r"\bcbreak\(", r"curses.cbreak(", r"curses"),
+    #chgat                   curs_attr(3X)
+    (r"\bclear\(", r"stdscr.clear(", r"curses"),
+    (r"\bclearok\(", r"stdscr.clearok(", r"curses"),
+    (r"\bclrtobot\(", r"stdscr.clrtobot(", r"curses"),
+    (r"\bclrtoeol\(", r"stdscr.clrtoeol(", r"curses"),
+    (r"\bcolor_content\(", r"curses.color_content(", r"curses"),
+    #color_set               curs_attr(3X)
+    #copywin                 curs_overlay(3X)
+    (r"\bcurs_set\(", r"curses.curs_set(", r"curses"),
+    #curses_version          curs_extend(3X)*
+    (r"\bdef_prog_mode\(", r"curses.def_prog_mode(", r"curses"),
+    (r"\bdef_shell_mode\(", r"curses.def_shell_mode(", r"curses"),
+    #define_key              define_key(3X)*
+    #del_curterm             curs_terminfo(3X)
+    (r"\bdelay_output\(", r"curses.delay_output(", r"curses"),
+    (r"\bdelch\(", r"stdscr.delch(", r"curses"),
+    (r"\bdeleteln\(", r"stdscr.deleteln(", r"curses"),
+    #delscreen               curs_initscr(3X)
+    #delwin                  curs_window(3X)
+    (r"\bderwin\(%(arg)s", r"\1.derwin(", "curses"),		# EXCEPTION
+    (r"\bdoupdate\(\)", r"curses.doupdate()", "curses"),
+    #dupwin                  curs_window(3X)
+    (r"\becho\(", r"curses.echo(", "curses"),
+    #echo_wchar              curs_add_wch(3X)
+    (r"\bechochar\(", r"stdscr.echochar(", "curses"),
+    (r"\bendwin\(", r"curses.endwin(", "curses"),
+    (r"\berase\(", r"stdscr.erase(", "curses"),
+    #erasechar               curs_termattrs(3X)
+    #erasewchar              curs_termattrs(3X)
+    (r"\bfilter\(\)", r"curses.filter()", "curses"),
+    (r"\bflash\(\)", r"curses.flash()", "curses"),
+    (r"\bflushinp\(\)", r"curses.flushinp()", "curses"),
+    #get_wch                 curs_get_wch(3X)
+    #get_wstr                curs_get_wstr(3X)
+    (r"\bgetbegyx\(%(arg)s%(arg)s%(farg)s\)",		# EXCEPTION
+     r"(\2, \3) = \1.getbegyx()", "curses"),
+    (r"\bgetbkgd\(", r"\1.getbkgd(", "curses"),		# EXCEPTION
+    #getbkgrnd               curs_bkgrnd(3X)
+    #getcchar                curs_getcchar(3X)
+    (r"\bgetch\(", r"stdscr.getch(", "curses"),
+    (r"\bgetmaxyx\(%(arg)s", r"\1.getmaxyx(", "curses"),	# EXCEPTION
+    (r"\bgetmouse\(%(farg)s\)", r"\1 = curses.getmouse()", "curses"),
+    #getn_wstr               curs_get_wstr(3X)
+    (r"\bgetnstr\(%(arg)s%(farg)s\)",	# NONTRIVIAL
+     r"\1 = stdscr.getstr(\2)", "curses"),
+    (r"\bgetparyx\(%(arg)s%(arg)s%(farg)s\)",	# EXCEPTION
+     r"(\2, \3) = \1.getparyx()", "curses"),
+    (r"\bgetsyx\(%(arg)s%(farg)s\)", r"(\1, \2) = curses.getsyx()", "curses"),
+    (r"\bgetstr\(\)", r"stdscr.getstr()", "curses"),
+    (r"\bgetyx\(%(arg)s%(arg)s%(farg)s\)",		#EXCEPTION
+     r"(\2, \3) = \1.getyx()", "curses"),
+    (r"\bgetwin\(", r"curses.getwin(", "curses"),
+    (r"\bhalfdelay\(", r"curses.halfdelay(", "curses"),
+    (r"\bhas_colors\(", r"curses.has_colors(", "curses"),
+    (r"\bhas_ic\(", r"curses.has_ic(", "curses"),
+    (r"\bhas_il\(", r"curses.has_il(", "curses"),
+    (r"\bhas_key\(", r"curses.has_key(", "curses"),
+    (r"\bhline\(", r"stdscr.hline(", "curses"),
+    #hline_set               curs_border_set(3X)
+    (r"\bidcok\(%(arg)s", r"\1.idcok(", "curses"),	# EXCEPTION
+    (r"\bidlok\(%(arg)s", r"\1.idlok(", "curses"),	# EXCEPTION
+    (r"\bimmedok\(%(arg)s", r"\1.immedok(", "curses"),	# EXCEPTION
+    # in_wch                  curs_in_wch(3X)
+    # in_wchnstr              curs_in_wchstr(3X)
+    # in_wchstr               curs_in_wchstr(3X)
+    (r"\binch\(", r"stdscr.inch(", "curses"),
+    #inchnstr                curs_inchstr(3X)
+    #inchstr                 curs_inchstr(3X)
+    (r"\binit_color\(", r"curses.init_color(", "curses"),
+    (r"\binit_pair\(", r"curses.init_pair(", "curses"),
+    (r"\binitscr\(", r"curses.initscr(", "curses"),
+    (r"\binnstr\(%(arg)s", r"\1.instr(", "curses"),	# NONTRIVIAL
+    #innwstr                 curs_inwstr(3X)
+    #ins_nwstr               curs_ins_wstr(3X)
+    #ins_wch                 curs_ins_wch(3X)
+    #ins_wstr                curs_ins_wstr(3X)
+    #                 insch                   curs_insch(3X)
+    #                 insdelln                curs_deleteln(3X)
+    #                 insertln                curs_deleteln(3X)
+    #                 insnstr                 curs_insstr(3X)
+    #                 insstr                  curs_insstr(3X)
+    #                 instr                   curs_instr(3X)
+    #                 intrflush               curs_inopts(3X)
+    #                 inwstr                  curs_inwstr(3X)
+    #                 is_linetouched          curs_touch(3X)
+    #                 is_wintouched           curs_touch(3X)
+    #                 isendwin                curs_initscr(3X)
+    #                 key_defined             key_defined(3X)*
+    #                 key_name                curs_util(3X)
+    #                 keybound                keybound(3X)*
+    #                 keyname                 curs_util(3X)
+    #                 keyok                   keyok(3X)*
+    #                 keypad                  curs_inopts(3X)
+    #                 killchar                curs_termattrs(3X)
+    #                 killwchar               curs_termattrs(3X)
+    #                 leaveok                 curs_outopts(3X)
+    #                 longname                curs_termattrs(3X)
+    #                 mcprint                 curs_print(3X)*
+    #                 meta                    curs_inopts(3X)
+    #                 mouse_trafo             curs_mouse(3X)*
+    #                 mouseinterval           curs_mouse(3X)*
+    #                 mousemask               curs_mouse(3X)*
+    #                 move                    curs_move(3X)
+    #                 mvadd_wch               curs_add_wch(3X)
+    #                 mvadd_wchnstr           curs_add_wchstr(3X)
+    #                 mvadd_wchstr            curs_add_wchstr(3X)
+    #                 mvaddch                 curs_addch(3X)
+    #                 mvaddchnstr             curs_addchstr(3X)
+    #                 mvaddchstr              curs_addchstr(3X)
+    #                 mvaddnstr               curs_addstr(3X)
+    #                 mvaddnwstr              curs_addwstr(3X)
+    #                 mvaddstr                curs_addstr(3X)
+    #                 mvaddwstr               curs_addwstr(3X)
+    #                 mvchgat                 curs_attr(3X)
+    #                 mvcur                   curs_terminfo(3X)
+    #                 mvdelch                 curs_delch(3X)
+    #                 mvderwin                curs_window(3X)
+    #                 mvget_wch               curs_get_wch(3X)
+    #                 mvget_wstr              curs_get_wstr(3X)
+    #                 mvgetch                 curs_getch(3X)
+    #                 mvgetn_wstr             curs_get_wstr(3X)
+    #                 mvgetnstr               curs_getstr(3X)
+    #                 mvgetstr                curs_getstr(3X)
+    #                 mvhline                 curs_border(3X)
+    #                 mvhline_set             curs_border_set(3X)
+    #                 mvin_wch                curs_in_wch(3X)
+    #                 mvin_wchnstr            curs_in_wchstr(3X)
+    #                 mvin_wchstr             curs_in_wchstr(3X)
+    #                 mvinch                  curs_inch(3X)
+    #                 mvinchnstr              curs_inchstr(3X)
+    #                 mvinchstr               curs_inchstr(3X)
+    #                 mvinnstr                curs_instr(3X)
+    #                 mvinnwstr               curs_inwstr(3X)
+    #                 mvins_nwstr             curs_ins_wstr(3X)
+    #                 mvins_wch               curs_ins_wch(3X)
+    #                 mvins_wstr              curs_ins_wstr(3X)
+    #                 mvinsch                 curs_insch(3X)
+    #                 mvinsnstr               curs_insstr(3X)
+    #                 mvinsstr                curs_insstr(3X)
+    #                 mvinstr                 curs_instr(3X)
+    #                 mvinwstr                curs_inwstr(3X)
+    #                 mvprintw                curs_printw(3X)
+    #                 mvscanw                 curs_scanw(3X)
+    #                 mvvline                 curs_border(3X)
+    #                 mvvline_set             curs_border_set(3X)
+    #                 mvwadd_wch              curs_add_wch(3X)
+    #                 mvwadd_wchnstr          curs_add_wchstr(3X)
+    #                 mvwadd_wchstr           curs_add_wchstr(3X)
+    #                 mvwaddch                curs_addch(3X)
+    #                 mvwaddchnstr            curs_addchstr(3X)
+    #                 mvwaddchstr             curs_addchstr(3X)
+    #                 mvwaddnstr              curs_addstr(3X)
+    #                 mvwaddnwstr             curs_addwstr(3X)
+    #                 mvwaddstr               curs_addstr(3X)
+    #                 mvwaddwstr              curs_addwstr(3X)
+    #                 mvwchgat                curs_attr(3X)
+    #                 mvwdelch                curs_delch(3X)
+    #                 mvwget_wch              curs_get_wch(3X)
+    #                 mvwget_wstr             curs_get_wstr(3X)
+    #                 mvwgetch                curs_getch(3X)
+    #                 mvwgetn_wstr            curs_get_wstr(3X)
+    #                 mvwgetnstr              curs_getstr(3X)
+    #                 mvwgetstr               curs_getstr(3X)
+    #                 mvwhline                curs_border(3X)
+    #                 mvwhline_set            curs_border_set(3X)
+    #                 mvwin                   curs_window(3X)
+    #                 mvwin_wch               curs_in_wch(3X)
+    #                 mvwin_wchnstr           curs_in_wchstr(3X)
+    #                 mvwin_wchstr            curs_in_wchstr(3X)
+    #                 mvwinch                 curs_inch(3X)
+    #                 mvwinchnstr             curs_inchstr(3X)
+    #                 mvwinchstr              curs_inchstr(3X)
+    #                 mvwinnstr               curs_instr(3X)
+    #                 mvwinnwstr              curs_inwstr(3X)
+    #                 mvwins_nwstr            curs_ins_wstr(3X)
+    #                 mvwins_wch              curs_ins_wch(3X)
+    #                 mvwins_wstr             curs_ins_wstr(3X)
+    #                 mvwinsch                curs_insch(3X)
+    #                 mvwinsnstr              curs_insstr(3X)
+    #                 mvwinsstr               curs_insstr(3X)
+    #                 mvwinstr                curs_instr(3X)
+    #                 mvwinwstr               curs_inwstr(3X)
+    #                 mvwprintw               curs_printw(3X)
+    #                 mvwscanw                curs_scanw(3X)
+    #                 mvwvline                curs_border(3X)
+    #                 mvwvline_set            curs_border_set(3X)
+    #                 napms                   curs_kernel(3X)
+    #                 newpad                  curs_pad(3X)
+    #                 newterm                 curs_initscr(3X)
+    #                 newwin                  curs_window(3X)
+    #                 nl                      curs_outopts(3X)
+    #                 nocbreak                curs_inopts(3X)
+    #                 nodelay                 curs_inopts(3X)
+    #                 noecho                  curs_inopts(3X)
+    #                 nonl                    curs_outopts(3X)
+    #                 noqiflush               curs_inopts(3X)
+    #                 noraw                   curs_inopts(3X)
+    #                 notimeout               curs_inopts(3X)
+    #                 overlay                 curs_overlay(3X)
+    #                 overwrite               curs_overlay(3X)
+    #                 pair_content            curs_color(3X)
+    #                 pechochar               curs_pad(3X)
+    #                 pnoutrefresh            curs_pad(3X)
+    #                 prefresh                curs_pad(3X)
+    #                 printw                  curs_printw(3X)
+    #                 putp                    curs_terminfo(3X)
+    #                 putwin                  curs_util(3X)
+    #                 qiflush                 curs_inopts(3X)
+    #                 raw                     curs_inopts(3X)
+    #                 redrawwin               curs_refresh(3X)
+    #                 refresh                 curs_refresh(3X)
+    #                 reset_prog_mode         curs_kernel(3X)
+    #                 reset_shell_mode        curs_kernel(3X)
+    #                 resetty                 curs_kernel(3X)
+    #                 resizeterm              resizeterm(3X)*
+    #                 restartterm             curs_terminfo(3X)
+    #                 ripoffline              curs_kernel(3X)
+    #                 savetty                 curs_kernel(3X)
+    #                 scanw                   curs_scanw(3X)
+    #                 scr_dump                curs_scr_dump(3X)
+    #                 scr_init                curs_scr_dump(3X)
+    #                 scr_restore             curs_scr_dump(3X)
+    #                 scr_set                 curs_scr_dump(3X)
+    #                 scrl                    curs_scroll(3X)
+    #                 scroll                  curs_scroll(3X)
+    #                 scrollok                curs_outopts(3X)
+    #                 set_curterm             curs_terminfo(3X)
+    #                 set_term                curs_initscr(3X)
+    #                 setcchar                curs_getcchar(3X)
+    #                 setscrreg               curs_outopts(3X)
+    #                 setsyx                  curs_kernel(3X)
+    #                 setterm                 curs_terminfo(3X)
+    #                 setupterm               curs_terminfo(3X)
+    #                 slk_attr                curs_slk(3X)*
+    #                 slk_attr_off            curs_slk(3X)
+    #                 slk_attr_on             curs_slk(3X)
+    #                 slk_attr_set            curs_slk(3X)
+    #                 slk_attroff             curs_slk(3X)
+    #                 slk_attron              curs_slk(3X)
+    #                 slk_attrset             curs_slk(3X)
+    #                 slk_clear               curs_slk(3X)
+    #                 slk_color               curs_slk(3X)
+    #                 slk_init                curs_slk(3X)
+    #                 slk_label               curs_slk(3X)
+    #                 slk_noutrefresh         curs_slk(3X)
+    #                 slk_refresh             curs_slk(3X)
+    #                 slk_restore             curs_slk(3X)
+    #                 slk_set                 curs_slk(3X)
+    #                 slk_touch               curs_slk(3X)
+    #                 standend                curs_attr(3X)
+    #                 standout                curs_attr(3X)
+    #                 start_color             curs_color(3X)
+    #                 subpad                  curs_pad(3X)
+    #                 subwin                  curs_window(3X)
+    #                 syncok                  curs_window(3X)
+    #                 term_attrs              curs_termattrs(3X)
+    #                 termattrs               curs_termattrs(3X)
+    #                 termname                curs_termattrs(3X)
+    #                 tgetent                 curs_termcap(3X)
+    #                 tgetflag                curs_termcap(3X)
+    #                 tgetnum                 curs_termcap(3X)
+    #                 tgetstr                 curs_termcap(3X)
+    #                 tgoto                   curs_termcap(3X)
+    #                 tigetflag               curs_terminfo(3X)
+    #                 tigetnum                curs_terminfo(3X)
+    #                 tigetstr                curs_terminfo(3X)
+    #                 timeout                 curs_inopts(3X)
+    #                 touchline               curs_touch(3X)
+    #                 touchwin                curs_touch(3X)
+    #                 tparm                   curs_terminfo(3X)
+    #                 tputs                   curs_termcap(3X)
+    #                 tputs                   curs_terminfo(3X)
+    #                 trace                   curs_trace(3X)*
+    #                 typeahead               curs_inopts(3X)
+    #                 unctrl                  curs_util(3X)
+    #                 unget_wch               curs_get_wch(3X)
+    #                 ungetch                 curs_getch(3X)
+    #                 ungetmouse              curs_mouse(3X)*
+    #                 untouchwin              curs_touch(3X)
+    #                 use_default_colors      default_colors(3X)*
+    #                 use_env                 curs_util(3X)
+    #                 use_extended_names      curs_extend(3X)*
+    #                 vid_attr                curs_terminfo(3X)
+    #                 vid_puts                curs_terminfo(3X)
+    #                 vidattr                 curs_terminfo(3X)
+    #                 vidputs                 curs_terminfo(3X)
+    #                 vline                   curs_border(3X)
+    #                 vline_set               curs_border_set(3X)
+    #                 vw_printw               curs_printw(3X)
+    #                 vw_scanw                curs_scanw(3X)
+    #                 vwprintw                curs_printw(3X)
+    #                 vwscanw                 curs_scanw(3X)
+    #                 wadd_wch                curs_add_wch(3X)
+    #                 wadd_wchnstr            curs_add_wchstr(3X)
+    #                 wadd_wchstr             curs_add_wchstr(3X)
+    #                 waddch                  curs_addch(3X)
+    #                 waddchnstr              curs_addchstr(3X)
+    #                 waddchstr               curs_addchstr(3X)
+    #                 waddnstr                curs_addstr(3X)
+    #                 waddnwstr               curs_addwstr(3X)
+    #                 waddstr                 curs_addstr(3X)
+    #                 waddwstr                curs_addwstr(3X)
+    #                 wattr_get               curs_attr(3X)
+    #                 wattr_off               curs_attr(3X)
+    #                 wattr_on                curs_attr(3X)
+    #                 wattr_set               curs_attr(3X)
+    #                 wattroff                curs_attr(3X)
+    #                 wattron                 curs_attr(3X)
+    #                 wattrset                curs_attr(3X)
+    #                 wbkgd                   curs_bkgd(3X)
+    #                 wbkgdset                curs_bkgd(3X)
+    #                 wbkgrnd                 curs_bkgrnd(3X)
+    #                 wbkgrndset              curs_bkgrnd(3X)
+    #                 wborder                 curs_border(3X)
+    #                 wborder_set             curs_border_set(3X)
+    #                 wchgat                  curs_attr(3X)
+    #                 wclear                  curs_clear(3X)
+    #                 wclrtobot               curs_clear(3X)
+    #                 wclrtoeol               curs_clear(3X)
+    #                 wcolor_set              curs_attr(3X)
+    #                 wcursyncup              curs_window(3X)
+    #                 wdelch                  curs_delch(3X)
+    #                 wdeleteln               curs_deleteln(3X)
+    #                 wecho_wchar             curs_add_wch(3X)
+    #                 wechochar               curs_addch(3X)
+    #                 wenclose                curs_mouse(3X)*
+    #                 werase                  curs_clear(3X)
+    #                 wget_wch                curs_get_wch(3X)
+    #                 wget_wstr               curs_get_wstr(3X)
+    #                 wgetbkgrnd              curs_bkgrnd(3X)
+    #                 wgetch                  curs_getch(3X)
+    #                 wgetn_wstr              curs_get_wstr(3X)
+    #                 wgetnstr                curs_getstr(3X)
+    #                 wgetstr                 curs_getstr(3X)
+    #                 whline                  curs_border(3X)
+    #                 whline_set              curs_border_set(3X)
+    #                 win_wch                 curs_in_wch(3X)
+    #                 win_wchnstr             curs_in_wchstr(3X)
+    #                 win_wchstr              curs_in_wchstr(3X)
+    #                 winch                   curs_inch(3X)
+    #                 winchnstr               curs_inchstr(3X)
+    #                 winchstr                curs_inchstr(3X)
+    #                 winnstr                 curs_instr(3X)
+    #                 winnwstr                curs_inwstr(3X)
+    #                 wins_nwstr              curs_ins_wstr(3X)
+    #                 wins_wch                curs_ins_wch(3X)
+    #                 wins_wstr               curs_ins_wstr(3X)
+    #                 winsch                  curs_insch(3X)
+    #                 winsdelln               curs_deleteln(3X)
+    #                 winsertln               curs_deleteln(3X)
+    #                 winsnstr                curs_insstr(3X)
+    #                 winsstr                 curs_insstr(3X)
+    #                 winstr                  curs_instr(3X)
+    #                 winwstr                 curs_inwstr(3X)
+    #                 wmouse_trafo            curs_mouse(3X)*
+    #                 wmove                   curs_move(3X)
+    #                 wnoutrefresh            curs_refresh(3X)
+    #                 wprintw                 curs_printw(3X)
+    #                 wredrawln               curs_refresh(3X)
+    #                 wrefresh                curs_refresh(3X)
+    #                 wresize                 wresize(3X)*
+    #                 wscanw                  curs_scanw(3X)
+    #                 wscrl                   curs_scroll(3X)
+    #                 wsetscrreg              curs_outopts(3X)
+    #                 wstandend               curs_attr(3X)
+    #                 wstandout               curs_attr(3X)
+    #                 wsyncdown               curs_window(3X)
+    #                 wsyncup                 curs_window(3X)
+    #                 wtimeout                curs_inopts(3X)
+    #                 wtouchln                curs_touch(3X)
+    #                 wunctrl                 curs_util(3X)
+    #                 wvline                  curs_border(3X)
+    #                 wvline_set              curs_border_set(3X)
+    # And this does the curses library constants
+    (r"\bA_ATTRIBUTES\b", r"curses.A_ATTRIBUTES"),
+    (r"\bA_NORMAL\b", r"curses.A_NORMAL"),
+    (r"\bA_STANDOUT\b", r"curses.A_STANDOUT"),
+    (r"\bA_UNDERLINE\b", r"curses.A_UNDERLINE"),
+    (r"\bA_REVERSE\b", r"curses.A_REVERSE"),
+    (r"\bA_BLINK\b", r"curses.A_BLINK"),
+    (r"\bA_DIM\b", r"curses.A_DIM"),
+    (r"\bA_BOLDW\b", r"curses.A_BOLDW"),
+    (r"\bA_ALTCHARSET\b", r"curses.A_ALTCHARSET"),
+    (r"\bA_INVIS\b", r"curses.A_INVIS"),
+    (r"\bA_PROTECT\b", r"curses.A_PROTECT"),
+    (r"\bA_HORIZONTAL\b", r"curses.A_HORIZONTAL"),
+    (r"\bA_LEFT\b", r"curses.A_LEFT"),
+    (r"\bA_LOW\b", r"curses.A_LOW"),
+    (r"\bA_RIGHT\b", r"curses.A_RIGHT"),
+    (r"\bA_TOP\b", r"curses.A_TOP"),
+    (r"\bA_VERTICAL\b", r"curses.A_VERTICAL"),
+    (r"\bOLOR_BLACK\b", r"curses.OLOR_BLACK"),
+    (r"\bOLOR_RED\b", r"curses.OLOR_RED"),
+    (r"\bOLOR_GREEN\b", r"curses.OLOR_GREEN"),
+    (r"\bOLOR_YELLOW\b", r"curses.OLOR_YELLOW"),
+    (r"\bOLOR_BLUE\b", r"curses.OLOR_BLUE"),
+    (r"\bOLOR_MAGENTA\b", r"curses.OLOR_MAGENTA"),
+    (r"\bOLOR_CYAN\b", r"curses.OLOR_CYAN"),
+    (r"\bOLOR_WHITE\b", r"curses.OLOR_WHITE"),
+    (r"\bACS_ULCORNER\b", r"curses.ACS_ULCORNER"),
+    (r"\bACS_LLCORNER\b", r"curses.ACS_LLCORNER"),
+    (r"\bACS_URCORNER\b", r"curses.ACS_URCORNER"),
+    (r"\bACS_LRCORNER\b", r"curses.ACS_LRCORNER"),
+    (r"\bACS_LTEE\b", r"curses.ACS_LTEE"),
+    (r"\bACS_RTEE\b", r"curses.ACS_RTEE"),
+    (r"\bACS_BTEE\b", r"curses.ACS_BTEE"),
+    (r"\bACS_TTEE\b", r"curses.ACS_TTEE"),
+    (r"\bACS_HLINE\b", r"curses.ACS_HLINE"),
+    (r"\bACS_VLINE\b", r"curses.ACS_VLINE"),
+    (r"\bACS_PLUS\b", r"curses.ACS_PLUS"),
+    (r"\bACS_S1\b", r"curses.ACS_S1"),
+    (r"\bACS_S9\b", r"curses.ACS_S9"),
+    (r"\bACS_DIAMOND\b", r"curses.ACS_DIAMOND"),
+    (r"\bACS_CKBOARD\b", r"curses.ACS_CKBOARD"),
+    (r"\bACS_DEGREE\b", r"curses.ACS_DEGREE"),
+    (r"\bACS_PLMINUS\b", r"curses.ACS_PLMINUS"),
+    (r"\bACS_BULLET\b", r"curses.ACS_BULLET"),
+    (r"\bACS_LARROW\b", r"curses.ACS_LARROW"),
+    (r"\bACS_RARROW\b", r"curses.ACS_RARROW"),
+    (r"\bACS_DARROW\b", r"curses.ACS_DARROW"),
+    (r"\bACS_UARROW\b", r"curses.ACS_UARROW"),
+    (r"\bACS_BOARD\b", r"curses.ACS_BOARD"),
+    (r"\bACS_LANTERN\b", r"curses.ACS_LANTERN"),
+    (r"\bACS_BLOCK\b", r"curses.ACS_BLOCK"),
+    (r"\bBUTTON(\d)_PRESSED\b", r"BUTTON\1_PRESSED"),
+    (r"\bBUTTON(\d)_RELEASED\b", r"BUTTON\1_RELEASED"),
+    (r"\bBUTTON(\d)_CLICKED\b", r"BUTTON\1_CLICKED"),
+    (r"\bBUTTON(\d)_DOUBLE_CLICKED\b", r"BUTTON\1_DOUBLE_CLICKED"),
+    (r"\bBUTTON(\d)_TRIPLE_CLICKED\b", r"BUTTON\1_TRIPLE_CLICKED"),
+    (r"\bBUTTON_SHIFT\b", r"BUTTON_SHIFT"),
+    (r"\bBUTTON_CTRL\b", r"BUTTON_CTRL"),
+    (r"\bBUTTON_ALT\b", r"BUTTON_ALT"),
+    (r"\bALL_MOUSE_EVENTS\b", r"ALL_MOUSE_EVENTS"),
+    (r"\bREPORT_MOUSE_POSITION\b", r"REPORT_MOUSE_POSITION"),
     # Python curses.ascii library
-    ("isalnum", "curses.ascii.isalnum"),
-    ("isalpha", "curses.ascii.isalpha"),
-    ("isascii", "curses.ascii.isascii"),
-    ("isblank", "curses.ascii.isblank"),
-    ("iscntrl", "curses.ascii.iscntrl"),
-    ("isdigit", "curses.ascii.isdigit"),
-    ("isgraph", "curses.ascii.isgraph"),
-    ("islower", "curses.ascii.islower"),
-    ("isprint", "curses.ascii.isprint"),
-    ("ispunct", "curses.ascii.ispunct"),
-    ("isspace", "curses.ascii.isspace"),
-    ("isupper", "curses.ascii.isupper"),
-    ("isxdigit", "curses.ascii.isxdigit"),
-    ("isctrl", "curses.ascii.isctrl"),
-    ("ismeta", "curses.ascii.ismeta"),
+    (r"\bisalnum\(", r"curses.ascii.isalnum("),
+    (r"\bisalpha\(", r"curses.ascii.isalpha("),
+    (r"\bisascii\(", r"curses.ascii.isascii("),
+    (r"\bisblank\(", r"curses.ascii.isblank("),
+    (r"\biscntrl\(", r"curses.ascii.iscntrl("),
+    (r"\bisdigit\(", r"curses.ascii.isdigit("),
+    (r"\bisgraph\(", r"curses.ascii.isgraph("),
+    (r"\bislower\(", r"curses.ascii.islower("),
+    (r"\bisprint\(", r"curses.ascii.isprint("),
+    (r"\bispunct\(", r"curses.ascii.ispunct("),
+    (r"\bisspace\(", r"curses.ascii.isspace("),
+    (r"\bisupper\(", r"curses.ascii.isupper("),
+    (r"\bisxdigit\(", r"curses.ascii.isxdigit("),
+    (r"\bisctrl\(", r"curses.ascii.isctrl("),
+    (r"\bismeta\(", r"curses.ascii.ismeta("),
     # Python errno library
-    ("EPERM", "errno.EPERM"),
-    ("ENOENT", "errno.ENOENT"),
-    ("ESRCH", "errno.ESRCH"),
-    ("EINTR", "errno.EINTR"),
-    ("EIO", "errno.EIO"),
-    ("ENXIO", "errno.ENXIO"),
-    ("E2BIG", "errno.E2BIG"),
-    ("ENOEXEC", "errno.ENOEXEC"),
-    ("EBADF", "errno.EBADF"),
-    ("ECHILD", "errno.ECHILD"),
-    ("EAGAIN", "errno.EAGAIN"),
-    ("ENOMEM", "errno.ENOMEM"),
-    ("EACCES", "errno.EACCES"),
-    ("EFAULT", "errno.EFAULT"),
-    ("ENOTBLK", "errno.ENOTBLK"),
-    ("EBUSY", "errno.EBUSY"),
-    ("EEXIST", "errno.EEXIST"),
-    ("EXDEV", "errno.EXDEV"),
-    ("ENODEV", "errno.ENODEV"),
-    ("ENOTDIR", "errno.ENOTDIR"),
-    ("EISDIR", "errno.EISDIR"),
-    ("EINVAL", "errno.EINVAL"),
-    ("ENFILE", "errno.ENFILE"),
-    ("EMFILE", "errno.EMFILE"),
-    ("ENOTTY", "errno.ENOTTY"),
-    ("ETXTBSY", "errno.ETXTBSY"),
-    ("EFBIG", "errno.EFBIG"),
-    ("ENOSPC", "errno.ENOSPC"),
-    ("ESPIPE", "errno.ESPIPE"),
-    ("EROFS", "errno.EROFS"),
-    ("EMLINK", "errno.EMLINK"),
-    ("EPIPE", "errno.EPIPE"),
-    ("EDOM", "errno.EDOM"),
-    ("ERANGE", "errno.ERANGE"),
-    ("EDEADLK", "errno.EDEADLK"),
-    ("ENAMETOOLONG", "errno.ENAMETOOLONG"),
-    ("ENOLCK", "errno.ENOLCK"),
-    ("ENOSYS", "errno.ENOSYS"),
-    ("ENOTEMPTY", "errno.ENOTEMPTY"),
-    ("ELOOP", "errno.ELOOP"),
-    ("EWOULDBLOCK", "errno.EWOULDBLOCK"),
-    ("ENOMSG", "errno.ENOMSG"),
-    ("EIDRM", "errno.EIDRM"),
-    ("ECHRNG", "errno.ECHRNG"),
-    ("EL2NSYNC", "errno.EL2NSYNC"),
-    ("EL3HLT", "errno.EL3HLT"),
-    ("EL3RST", "errno.EL3RST"),
-    ("ELNRNG", "errno.ELNRNG"),
-    ("EUNATCH", "errno.EUNATCH"),
-    ("ENOCSI", "errno.ENOCSI"),
-    ("EL2HLT", "errno.EL2HLT"),
-    ("EBADE", "errno.EBADE"),
-    ("EBADR", "errno.EBADR"),
-    ("EXFULL", "errno.EXFULL"),
-    ("ENOANO", "errno.ENOANO"),
-    ("EBADRQC", "errno.EBADRQC"),
-    ("EBADSLT", "errno.EBADSLT"),
-    ("EDEADLOCK", "errno.EDEADLOCK"),
-    ("EBFONT", "errno.EBFONT"),
-    ("ENOSTR", "errno.ENOSTR"),
-    ("ENODATA", "errno.ENODATA"),
-    ("ETIME", "errno.ETIME"),
-    ("ENOSR", "errno.ENOSR"),
-    ("ENONET", "errno.ENONET"),
-    ("ENOPKG", "errno.ENOPKG"),
-    ("EREMOTE", "errno.EREMOTE"),
-    ("ENOLINK", "errno.ENOLINK"),
-    ("EADV", "errno.EADV"),
-    ("ESRMNT", "errno.ESRMNT"),
-    ("ECOMM", "errno.ECOMM"),
-    ("EPROTO", "errno.EPROTO"),
-    ("EMULTIHOP", "errno.EMULTIHOP"),
-    ("EDOTDOT", "errno.EDOTDOT"),
-    ("EBADMSG", "errno.EBADMSG"),
-    ("EOVERFLOW", "errno.EOVERFLOW"),
-    ("ENOTUNIQ", "errno.ENOTUNIQ"),
-    ("EBADFD", "errno.EBADFD"),
-    ("EREMCHG", "errno.EREMCHG"),
-    ("ELIBACC", "errno.ELIBACC"),
-    ("ELIBBAD", "errno.ELIBBAD"),
-    ("ELIBSCN", "errno.ELIBSCN"),
-    ("ELIBMAX", "errno.ELIBMAX"),
-    ("ELIBEXEC", "errno.ELIBEXEC"),
-    ("EILSEQ", "errno.EILSEQ"),
-    ("ERESTART", "errno.ERESTART"),
-    ("ESTRPIPE", "errno.ESTRPIPE"),
-    ("EUSERS", "errno.EUSERS"),
-    ("ENOTSOCK", "errno.ENOTSOCK"),
-    ("EDESTADDRREQ", "errno.EDESTADDRREQ"),
-    ("EMSGSIZE", "errno.EMSGSIZE"),
-    ("EPROTOTYPE", "errno.EPROTOTYPE"),
-    ("ENOPROTOOPT", "errno.ENOPROTOOPT"),
-    ("EPROTONOSUPPORT", "errno.EPROTONOSUPPORT"),
-    ("ESOCKTNOSUPPORT", "errno.ESOCKTNOSUPPORT"),
-    ("EOPNOTSUPP", "errno.EOPNOTSUPP"),
-    ("EPFNOSUPPORT", "errno.EPFNOSUPPORT"),
-    ("EAFNOSUPPORT", "errno.EAFNOSUPPORT"),
-    ("EADDRINUSE", "errno.EADDRINUSE"),
-    ("EADDRNOTAVAIL", "errno.EADDRNOTAVAIL"),
-    ("ENETDOWN", "errno.ENETDOWN"),
-    ("ENETUNREACH", "errno.ENETUNREACH"),
-    ("ENETRESET", "errno.ENETRESET"),
-    ("ECONNABORTED", "errno.ECONNABORTED"),
-    ("ECONNRESET", "errno.ECONNRESET"),
-    ("ENOBUFS", "errno.ENOBUFS"),
-    ("EISCONN", "errno.EISCONN"),
-    ("ENOTCONN", "errno.ENOTCONN"),
-    ("ESHUTDOWN", "errno.ESHUTDOWN"),
-    ("ETOOMANYREFS", "errno.ETOOMANYREFS"),
-    ("ETIMEDOUT", "errno.ETIMEDOUT"),
-    ("ECONNREFUSED", "errno.ECONNREFUSED"),
-    ("EHOSTDOWN", "errno.EHOSTDOWN"),
-    ("EHOSTUNREACH", "errno.EHOSTUNREACH"),
-    ("EALREADY", "errno.EALREADY"),
-    ("EINPROGRESS", "errno.EINPROGRESS"),
-    ("ESTALE", "errno.ESTALE"),
-    ("EUCLEAN", "errno.EUCLEAN"),
-    ("ENOTNAM", "errno.ENOTNAM"),
-    ("ENAVAIL", "errno.ENAVAIL"),
-    ("EISNAM", "errno.EISNAM"),
-    ("EREMOTEIO", "errno.EREMOTEIO"),
-    ("EDQUOT", "errno.EDQUOT"),
+    (r"\bEPERM\b", r"errno.EPERM"),
+    (r"\bENOENT\b", r"errno.ENOENT"),
+    (r"\bESRCH\b", r"errno.ESRCH"),
+    (r"\bEINTR\b", r"errno.EINTR"),
+    (r"\bEIO\b", r"errno.EIO"),
+    (r"\bENXIO\b", r"errno.ENXIO"),
+    (r"\bE2BIG\b", r"errno.E2BIG"),
+    (r"\bENOEXEC\b", r"errno.ENOEXEC"),
+    (r"\bEBADF\b", r"errno.EBADF"),
+    (r"\bECHILD\b", r"errno.ECHILD"),
+    (r"\bEAGAIN\b", r"errno.EAGAIN"),
+    (r"\bENOMEM\b", r"errno.ENOMEM"),
+    (r"\bEACCES\b", r"errno.EACCES"),
+    (r"\bEFAULT\b", r"errno.EFAULT"),
+    (r"\bENOTBLK\b", r"errno.ENOTBLK"),
+    (r"\bEBUSY\b", r"errno.EBUSY"),
+    (r"\bEEXIST\b", r"errno.EEXIST"),
+    (r"\bEXDEV\b", r"errno.EXDEV"),
+    (r"\bENODEV\b", r"errno.ENODEV"),
+    (r"\bENOTDIR\b", r"errno.ENOTDIR"),
+    (r"\bEISDIR\b", r"errno.EISDIR"),
+    (r"\bEINVAL\b", r"errno.EINVAL"),
+    (r"\bENFILE\b", r"errno.ENFILE"),
+    (r"\bEMFILE\b", r"errno.EMFILE"),
+    (r"\bENOTTY\b", r"errno.ENOTTY"),
+    (r"\bETXTBSY\b", r"errno.ETXTBSY"),
+    (r"\bEFBIG\b", r"errno.EFBIG"),
+    (r"\bENOSPC\b", r"errno.ENOSPC"),
+    (r"\bESPIPE\b", r"errno.ESPIPE"),
+    (r"\bEROFS\b", r"errno.EROFS"),
+    (r"\bEMLINK\b", r"errno.EMLINK"),
+    (r"\bEPIPE\b", r"errno.EPIPE"),
+    (r"\bEDOM\b", r"errno.EDOM"),
+    (r"\bERANGE\b", r"errno.ERANGE"),
+    (r"\bEDEADLK\b", r"errno.EDEADLK"),
+    (r"\bENAMETOOLONG\b", r"errno.ENAMETOOLONG"),
+    (r"\bENOLCK\b", r"errno.ENOLCK"),
+    (r"\bENOSYS\b", r"errno.ENOSYS"),
+    (r"\bENOTEMPTY\b", r"errno.ENOTEMPTY"),
+    (r"\bELOOP\b", r"errno.ELOOP"),
+    (r"\bEWOULDBLOCK\b", r"errno.EWOULDBLOCK"),
+    (r"\bENOMSG\b", r"errno.ENOMSG"),
+    (r"\bEIDRM\b", r"errno.EIDRM"),
+    (r"\bECHRNG\b", r"errno.ECHRNG"),
+    (r"\bEL2NSYNC\b", r"errno.EL2NSYNC"),
+    (r"\bEL3HLT\b", r"errno.EL3HLT"),
+    (r"\bEL3RST\b", r"errno.EL3RST"),
+    (r"\bELNRNG\b", r"errno.ELNRNG"),
+    (r"\bEUNATCH\b", r"errno.EUNATCH"),
+    (r"\bENOCSI\b", r"errno.ENOCSI"),
+    (r"\bEL2HLT\b", r"errno.EL2HLT"),
+    (r"\bEBADE\b", r"errno.EBADE"),
+    (r"\bEBADR\b", r"errno.EBADR"),
+    (r"\bEXFULL\b", r"errno.EXFULL"),
+    (r"\bENOANO\b", r"errno.ENOANO"),
+    (r"\bEBADRQC\b", r"errno.EBADRQC"),
+    (r"\bEBADSLT\b", r"errno.EBADSLT"),
+    (r"\bEDEADLOCK\b", r"errno.EDEADLOCK"),
+    (r"\bEBFONT\b", r"errno.EBFONT"),
+    (r"\bENOSTR\b", r"errno.ENOSTR"),
+    (r"\bENODATA\b", r"errno.ENODATA"),
+    (r"\bETIME\b", r"errno.ETIME"),
+    (r"\bENOSR\b", r"errno.ENOSR"),
+    (r"\bENONET\b", r"errno.ENONET"),
+    (r"\bENOPKG\b", r"errno.ENOPKG"),
+    (r"\bEREMOTE\b", r"errno.EREMOTE"),
+    (r"\bENOLINK\b", r"errno.ENOLINK"),
+    (r"\bEADV\b", r"errno.EADV"),
+    (r"\bESRMNT\b", r"errno.ESRMNT"),
+    (r"\bECOMM\b", r"errno.ECOMM"),
+    (r"\bEPROTO\b", r"errno.EPROTO"),
+    (r"\bEMULTIHOP\b", r"errno.EMULTIHOP"),
+    (r"\bEDOTDOT\b", r"errno.EDOTDOT"),
+    (r"\bEBADMSG\b", r"errno.EBADMSG"),
+    (r"\bEOVERFLOW\b", r"errno.EOVERFLOW"),
+    (r"\bENOTUNIQ\b", r"errno.ENOTUNIQ"),
+    (r"\bEBADFD\b", r"errno.EBADFD"),
+    (r"\bEREMCHG\b", r"errno.EREMCHG"),
+    (r"\bELIBACC\b", r"errno.ELIBACC"),
+    (r"\bELIBBAD\b", r"errno.ELIBBAD"),
+    (r"\bELIBSCN\b", r"errno.ELIBSCN"),
+    (r"\bELIBMAX\b", r"errno.ELIBMAX"),
+    (r"\bELIBEXEC\b", r"errno.ELIBEXEC"),
+    (r"\bEILSEQ\b", r"errno.EILSEQ"),
+    (r"\bERESTART\b", r"errno.ERESTART"),
+    (r"\bESTRPIPE\b", r"errno.ESTRPIPE"),
+    (r"\bEUSERS\b", r"errno.EUSERS"),
+    (r"\bENOTSOCK\b", r"errno.ENOTSOCK"),
+    (r"\bEDESTADDRREQ\b", r"errno.EDESTADDRREQ"),
+    (r"\bEMSGSIZE\b", r"errno.EMSGSIZE"),
+    (r"\bEPROTOTYPE\b", r"errno.EPROTOTYPE"),
+    (r"\bENOPROTOOPT\b", r"errno.ENOPROTOOPT"),
+    (r"\bEPROTONOSUPPORT\b", r"errno.EPROTONOSUPPORT"),
+    (r"\bESOCKTNOSUPPORT\b", r"errno.ESOCKTNOSUPPORT"),
+    (r"\bEOPNOTSUPP\b", r"errno.EOPNOTSUPP"),
+    (r"\bEPFNOSUPPORT\b", r"errno.EPFNOSUPPORT"),
+    (r"\bEAFNOSUPPORT\b", r"errno.EAFNOSUPPORT"),
+    (r"\bEADDRINUSE\b", r"errno.EADDRINUSE"),
+    (r"\bEADDRNOTAVAIL\b", r"errno.EADDRNOTAVAIL"),
+    (r"\bENETDOWN\b", r"errno.ENETDOWN"),
+    (r"\bENETUNREACH\b", r"errno.ENETUNREACH"),
+    (r"\bENETRESET\b", r"errno.ENETRESET"),
+    (r"\bECONNABORTED\b", r"errno.ECONNABORTED"),
+    (r"\bECONNRESET\b", r"errno.ECONNRESET"),
+    (r"\bENOBUFS\b", r"errno.ENOBUFS"),
+    (r"\bEISCONN\b", r"errno.EISCONN"),
+    (r"\bENOTCONN\b", r"errno.ENOTCONN"),
+    (r"\bESHUTDOWN\b", r"errno.ESHUTDOWN"),
+    (r"\bETOOMANYREFS\b", r"errno.ETOOMANYREFS"),
+    (r"\bETIMEDOUT\b", r"errno.ETIMEDOUT"),
+    (r"\bECONNREFUSED\b", r"errno.ECONNREFUSED"),
+    (r"\bEHOSTDOWN\b", r"errno.EHOSTDOWN"),
+    (r"\bEHOSTUNREACH\b", r"errno.EHOSTUNREACH"),
+    (r"\bEALREADY\b", r"errno.EALREADY"),
+    (r"\bEINPROGRESS\b", r"errno.EINPROGRESS"),
+    (r"\bESTALE\b", r"errno.ESTALE"),
+    (r"\bEUCLEAN\b", r"errno.EUCLEAN"),
+    (r"\bENOTNAM\b", r"errno.ENOTNAM"),
+    (r"\bENAVAIL\b", r"errno.ENAVAIL"),
+    (r"\bEISNAM\b", r"errno.EISNAM"),
+    (r"\bEREMOTEIO\b", r"errno.EREMOTEIO"),
+    (r"\bEDQUOT\b", r"errno.EDQUOT"),
     # Python fcntl library
-    ("fcntl", "fcntl.fcntl"),
-    ("flock", "fcntl.lockf"),
-    ("lockf", "fcntl.lockf"),
-    ("LOCK_UN", "fcntl.LOCK_UN"),
-    ("LOCK_EX", "fcntl.LOCK_EX"),
-    ("LOCK_SH", "fcntl.LOCK_SH"),
-    ("LOCK_NB", "fcntl.LOCK_NB"),
+    (r"\bfcntl\(", r"fcntl.fcntl("),
+    (r"\bflock\(", r"fcntl.lockf("),
+    (r"\blockf\(", r"fcntl.lockf("),
+    (r"\bLOCK_UN\b", r"fcntl.LOCK_UN"),
+    (r"\bLOCK_EX\b", r"fcntl.LOCK_EX"),
+    (r"\bLOCK_SH\b", r"fcntl.LOCK_SH"),
+    (r"\bLOCK_NB\b", r"fcntl.LOCK_NB"),
     # Python getpass library
-    ("getpass", "getpass.getpass"),
+    (r"\bgetpass\(", r"getpass.getpass("),
     # Python glob library
-    ("glob", "glob.glob"),	# Calling conventions differ
+    (r"\bglob\(", r"glob.glob("),	# Calling conventions differ
     # Python grp library
-    ("getgrgid", "grp.getgrgid"),
-    ("getgrnam", "grp.getgrnam"),
+    (r"\bgetgrgid\(", r"grp.getgrgid("),
+    (r"\bgetgrnam\(", r"grp.getgrnam("),
     # Python math library
-    ("acos", "math.acos"),
-    ("asin", "math.asin"),
-    ("atan", "math.atan"),
-    ("atan2", "math.atan2"),
-    ("ceil", "math.ceil"),
-    ("cos", "math.cos"),
-    ("cosh", "math.cosh"),
-    ("exp", "math.exp"),
-    ("fabs", "math.fabs"),
-    ("floor", "math.floor"),
-    ("fmod", "math.fmod"),
-    ("frexp", "math.frexp"),	# Calling conventions differ
-    ("ldexp", "math.ldexp"),
-    ("log10", "math.log10"),
-    ("log", "math.log"),
-    ("modf", "math.modf"),	# Calling conventions differ
-    ("pow", "math.pow"),
-    ("sinh", "math.sinh"),
-    ("sin", "math.sin"),
-    ("sqrt", "math.sqrt"),
-    ("tan", "math.tan"),
-    ("tanh", "math.tanh"),
+    (r"\bacos\(", r"math.acos("),
+    (r"\basin\(", r"math.asin("),
+    (r"\batan\(", r"math.atan("),
+    (r"\batan2\(", r"math.atan2("),
+    (r"\bceil\(", r"math.ceil("),
+    (r"\bcos\(", r"math.cos("),
+    (r"\bcosh\(", r"math.cosh("),
+    (r"\bexp\(", r"math.exp("),
+    (r"\bfabs\(", r"math.fabs("),
+    (r"\bfloor\(", r"math.floor("),
+    (r"\bfmod\(", r"math.fmod("),
+    (r"\bfrexp\(", r"math.frexp("),	# Calling conventions differ
+    (r"\bldexp\(", r"math.ldexp("),
+    (r"\blog10\(", r"math.log10("),
+    (r"\blog\(", r"math.log("),
+    (r"\bmodf\(", r"math.modf("),	# Calling conventions differ
+    (r"\bpow\(", r"math.pow("),
+    (r"\bsinh\(", r"math.sinh("),
+    (r"\bsin\(", r"math.sin("),
+    (r"\bsqrt\(", r"math.sqrt("),
+    (r"\btan\(", r"math.tan("),
+    (r"\btanh\(", r"math.tanh("),
     # Python os library
-    ("abort", "os.abort"),
-    ("access", "os.access"),
-    ("chdir", "os.chdir"),
-    ("close", "os.close"),
-    ("environ", "os.environ"),
-    ("fchdir", "os.fchdir"),
-    ("chroot", "os.chroot"),
-    ("chmod", "os.chmod"),
-    ("chown", "os.chown"),
-    ("ctermid", "os.ctermid"),
-    ("dup", "os.dup"),
-    ("dup2", "os.dup2"),
-    ("execl", "os.execl"),
-    ("execle", "os.execle"),
-    ("execlp", "os.execlp"),
-    ("execlpe", "os.execlpe"),
-    ("execv", "os.execv"),
-    ("execve", "os.execve"),
-    ("execvp", "os.execvp"),
-    ("execvpe", "os.execvpe"),
-    ("_exit", "os._exit"),
-    ("exit", "os.exit"),
-    ("fdopen", "os.fdopen"),
-    ("fork", "os.fork"),
-    ("fsync", "os.fsync"),
-    ("ftruncate", "os.ftruncate"),
-    ("getcwd", "os.getcwd"),
-    ("getegid", "os.getegid"),
-    ("geteuid", "os.geteuid"),
-    ("getenv", "os.getenv"),
-    ("getgid", "os.getgid"),
-    ("getgroups", "os.getgroups"),
-    ("getlogin", "os.getlogin"),
-    ("getpgid", "os.getpgid"),
-    ("getpgrp", "os.getpgrp"),
-    ("getpid", "os.getpid"),
-    ("getppid", "os.getppid"),
-    ("getuid", "os.getuid"),
-    ("kill", "os.kill"),
-    ("killpg", "os.killpg"),
-    ("isatty", "os.isatty"),
-    ("lseek", "os.lseek"),
-    ("lchown", "os.lchown"),
-    ("getcwd", "os.getcwd"),
-    ("lstat", "os.lstat"),
-    ("mkfifo", "os.mkfifo"),
-    ("mknod", "os.mknod"),
-    ("mkdir", "os.mkdir"),
-    ("nice", "os.nice"),
-    ("open", "os.open"),
-    ("pathconf", "os.pathconf"),
-    ("pipe", "os.pipe"),
-    ("plock", "os.plock"),
-    ("putenv", "os.putenv"),
-    ("read", "os.read"),
-    ("rmdir", "os.rmdir"),
-    ("setegid", "os.setegid"),
-    ("seteuid", "os.seteuid"),
-    ("setgid", "os.setgid"),
-    ("setgroups", "os.setgroups"),
-    ("setpgrp", "os.setpgrp"),
-    ("setpgid", "os.setpgid"),
-    ("setreuid", "os.setreuid"),
-    ("setregid", "os.setregid"),
-    ("setsid", "os.setsid"),
-    ("setuid", "os.setuid"),
-    ("strerror", "os.strerror"),
-    ("umask", "os.umask"),
-    ("symlink", "os.symlink"),
-    ("system", "os.system"),
-    ("tcgetpgrp", "os.tcgetpgrp"),
-    ("tcsetpgrp", "os.tcsetpgrp"),
-    ("tmpfile", "os.tmpfile"),
-    ("ttyname", "os.ttyname"),
-    ("unlink", "os.unlink"),
-    ("write", "os.write"),
-    ("wait", "os.wait"),
-    ("waitpid", "os.waitpid"),
-    ("WNOHANG", "os.WNOHANG"),
-    ("WCONTINUED", "os.WCONTINUED"),
-    ("WUNTRACED", "os.WUNTRACED"),
-    ("WCOREDUMP", "os.WCOREDUMP"),
-    ("WIFCONTINUED", "os.WIFCONTINUED"),
-    ("WIFSTOPPED", "os.WIFSTOPPED"),
-    ("WIFSIGNALED", "os.WIFSIGNALED"),
-    ("WIFEXITED", "os.WIFEXITED"),
-    ("WEXITSTATUS", "os.WEXITSTATUS"),
-    ("WSTOPSIG", "os.WSTOPSIG"),
-    ("WTERMSIG", "os.WTERMSIG"),
-    ("O_RDONLY", "os.O_RDONLY"),
-    ("O_WRONLY", "os.O_WRONLY"),
-    ("O_RDWR", "os.O_RDWR"),
-    ("O_NDELAY", "os.O_NDELAY"),
-    ("O_NONBLOCK", "os.O_NONBLOCK"),
-    ("O_APPEND", "os.O_APPEND"),
-    ("O_DSYNC", "os.O_DSYNC"),
-    ("O_RSYNC", "os.O_RSYNC"),
-    ("O_SYNC", "os.O_SYNC"),
-    ("O_NOCTTY", "os.O_NOCTTY"),
-    ("O_CREAT", "os.O_CREAT"),
-    ("O_EXCL", "os.O_EXCL"),
-    ("O_TRUNC", "os.O_TRUNC"),
-    ("F_OK", "os.F_OK"),
-    ("R_OK", "os.R_OK"),
-    ("W_OK", "os.W_OK"),
-    ("X_OK", "os.X_OK"),
-    ("S_ISUID", "os.S_ISUID"),
-    ("S+ISGID", "os.S+ISGID"),
-    ("S_ENFMT", "os.S_ENFMT"),
-    ("S_ISVTX", "os.S_ISVTX"),
-    ("S_IREAD", "os.S_IREAD"),
-    ("S_IWRITE", "os.S_IWRITE"),
-    ("S_IEXEC", "os.S_IEXEC"),
-    ("S_IRWXU", "os.S_IRWXU"),
-    ("S_IRUSR", "os.S_IRUSR"),
-    ("S_IXUSR", "os.S_IXUSR"),
-    ("S_IRWXG", "os.S_IRWXG"),
-    ("S_IRGRP", "os.S_IRGRP"),
-    ("S_IWGRP", "os.S_IWGRP"),
-    ("S_IXGRP", "os.S_IXGRP"),
-    ("S_IRWXO", "os.S_IRWXO"),
-    ("S_IROTH", "os.S_IROTH"),
-    ("S_IWOTH", "os.S_IWOTH"),
-    ("S_IXOTH", "os.S_IXOTH"),
+    (r"\babort\(", r"os.abort("),
+    (r"\baccess\(", r"os.access("),
+    (r"\bchdir\(", r"os.chdir("),
+    (r"\bclose\(", r"os.close("),
+    (r"\benviron\(", r"os.environ("),
+    (r"\bfchdir\(", r"os.fchdir("),
+    (r"\bchroot\(", r"os.chroot("),
+    (r"\bchmod\(", r"os.chmod("),
+    (r"\bchown\(", r"os.chown("),
+    (r"\bctermid\(", r"os.ctermid("),
+    (r"\bdup\(", r"os.dup("),
+    (r"\bdup2\(", r"os.dup2("),
+    (r"\bexecl\(", r"os.execl("),
+    (r"\bexecle\(", r"os.execle("),
+    (r"\bexeclp\(", r"os.execlp("),
+    (r"\bexeclpe\(", r"os.execlpe("),
+    (r"\bexecv\(", r"os.execv("),
+    (r"\bexecve\(", r"os.execve("),
+    (r"\bexecvp\(", r"os.execvp("),
+    (r"\bexecvpe\(", r"os.execvpe("),
+    (r"\b_exit\(", r"os._exit("),
+    (r"\bexit\(", r"os.exit("),
+    (r"\bfdopen\(", r"os.fdopen("),
+    (r"\bfork\(", r"os.fork("),
+    (r"\bfsync\(", r"os.fsync("),
+    (r"\bftruncate\(", r"os.ftruncate("),
+    (r"\bgetcwd\(", r"os.getcwd("),
+    (r"\bgetegid\(", r"os.getegid("),
+    (r"\bgeteuid\(", r"os.geteuid("),
+    (r"\bgetenv\(", r"os.getenv("),
+    (r"\bgetgid\(", r"os.getgid("),
+    (r"\bgetgroups\(", r"os.getgroups("),
+    (r"\bgetlogin\(", r"os.getlogin("),
+    (r"\bgetpgid\(", r"os.getpgid("),
+    (r"\bgetpgrp\(", r"os.getpgrp("),
+    (r"\bgetpid\(", r"os.getpid("),
+    (r"\bgetppid\(", r"os.getppid("),
+    (r"\bgetuid\(", r"os.getuid("),
+    (r"\bkill\(", r"os.kill("),
+    (r"\bkillpg\(", r"os.killpg("),
+    (r"\bisatty\(", r"os.isatty("),
+    (r"\blseek\(", r"os.lseek("),
+    (r"\blchown\(", r"os.lchown("),
+    (r"\bgetcwd\(", r"os.getcwd("),
+    (r"\blstat\(", r"os.lstat("),
+    (r"\bmkfifo\(", r"os.mkfifo("),
+    (r"\bmknod\(", r"os.mknod("),
+    (r"\bmkdir\(", r"os.mkdir("),
+    (r"\bnice\(", r"os.nice("),
+    (r"\bopen\(", r"os.open("),
+    (r"\bpathconf\(", r"os.pathconf("),
+    (r"\bpipe\(", r"os.pipe("),
+    (r"\bplock\(", r"os.plock("),
+    (r"\bputenv\(", r"os.putenv("),
+    (r"\bread\(", r"os.read("),
+    (r"\brmdir\(", r"os.rmdir("),
+    (r"\bsetegid\(", r"os.setegid("),
+    (r"\bseteuid\(", r"os.seteuid("),
+    (r"\bsetgid\(", r"os.setgid("),
+    (r"\bsetgroups\(", r"os.setgroups("),
+    (r"\bsetpgrp\(", r"os.setpgrp("),
+    (r"\bsetpgid\(", r"os.setpgid("),
+    (r"\bsetreuid\(", r"os.setreuid("),
+    (r"\bsetregid\(", r"os.setregid("),
+    (r"\bsetsid\(", r"os.setsid("),
+    (r"\bsetuid\(", r"os.setuid("),
+    (r"\bstrerror\(", r"os.strerror("),
+    (r"\bumask\(", r"os.umask("),
+    (r"\bsymlink\(", r"os.symlink("),
+    (r"\bsystem\(", r"os.system("),
+    (r"\btcgetpgrp\(", r"os.tcgetpgrp("),
+    (r"\btcsetpgrp\(", r"os.tcsetpgrp("),
+    (r"\btmpfile\(", r"os.tmpfile("),
+    (r"\bttyname\(", r"os.ttyname("),
+    (r"\bunlink\(", r"os.unlink("),
+    (r"\bwrite\(", r"os.write("),
+    (r"\bwait\(", r"os.wait("),
+    (r"\bwaitpid\(", r"os.waitpid("),
+    (r"\bWNOHANG\b", r"os.WNOHANG"),
+    (r"\bWCONTINUED\b", r"os.WCONTINUED"),
+    (r"\bWUNTRACED\b", r"os.WUNTRACED"),
+    (r"\bWCOREDUMP\b", r"os.WCOREDUMP"),
+    (r"\bWIFCONTINUED\b", r"os.WIFCONTINUED"),
+    (r"\bWIFSTOPPED\b", r"os.WIFSTOPPED"),
+    (r"\bWIFSIGNALED\b", r"os.WIFSIGNALED"),
+    (r"\bWIFEXITED\b", r"os.WIFEXITED"),
+    (r"\bWEXITSTATUS\b", r"os.WEXITSTATUS"),
+    (r"\bWSTOPSIG\b", r"os.WSTOPSIG"),
+    (r"\bWTERMSIG\b", r"os.WTERMSIG"),
+    (r"\bO_RDONLY\b", r"os.O_RDONLY"),
+    (r"\bO_WRONLY\b", r"os.O_WRONLY"),
+    (r"\bO_RDWR\b", r"os.O_RDWR"),
+    (r"\bO_NDELAY\b", r"os.O_NDELAY"),
+    (r"\bO_NONBLOCK\b", r"os.O_NONBLOCK"),
+    (r"\bO_APPEND\b", r"os.O_APPEND"),
+    (r"\bO_DSYNC\b", r"os.O_DSYNC"),
+    (r"\bO_RSYNC\b", r"os.O_RSYNC"),
+    (r"\bO_SYNC\b", r"os.O_SYNC"),
+    (r"\bO_NOCTTY\b", r"os.O_NOCTTY"),
+    (r"\bO_CREAT\b", r"os.O_CREAT"),
+    (r"\bO_EXCL\b", r"os.O_EXCL"),
+    (r"\bO_TRUNC\b", r"os.O_TRUNC"),
+    (r"\bF_OK\b", r"os.F_OK"),
+    (r"\bR_OK\b", r"os.R_OK"),
+    (r"\bW_OK\b", r"os.W_OK"),
+    (r"\bX_OK\b", r"os.X_OK"),
+    (r"\bS_ISUID\b", r"os.S_ISUID"),
+    (r"\bS+ISGID\b", r"os.S+ISGID"),
+    (r"\bS_ENFMT\b", r"os.S_ENFMT"),
+    (r"\bS_ISVTX\b", r"os.S_ISVTX"),
+    (r"\bS_IREAD\b", r"os.S_IREAD"),
+    (r"\bS_IWRITE\b", r"os.S_IWRITE"),
+    (r"\bS_IEXEC\b", r"os.S_IEXEC"),
+    (r"\bS_IRWXU\b", r"os.S_IRWXU"),
+    (r"\bS_IRUSR\b", r"os.S_IRUSR"),
+    (r"\bS_IXUSR\b", r"os.S_IXUSR"),
+    (r"\bS_IRWXG\b", r"os.S_IRWXG"),
+    (r"\bS_IRGRP\b", r"os.S_IRGRP"),
+    (r"\bS_IWGRP\b", r"os.S_IWGRP"),
+    (r"\bS_IXGRP\b", r"os.S_IXGRP"),
+    (r"\bS_IRWXO\b", r"os.S_IRWXO"),
+    (r"\bS_IROTH\b", r"os.S_IROTH"),
+    (r"\bS_IWOTH\b", r"os.S_IWOTH"),
+    (r"\bS_IXOTH\b", r"os.S_IXOTH"),
     # Python random library -- alas, C rand() doesn't map cleanly
-    ("srand48", "random.seed"),
-    ("srand", "random.seed"),
+    (r"\bsrand48\(", r"random.seed("),
+    (r"\bsrand\(", r"random.seed("),
     # Python os.path library
-    ("basename", "os.path.basename"),
-    ("dirname", "os.path.dirname"),
+    (r"\bbasename\(", r"os.path.basename("),
+    (r"\bdirname\(", r"os.path.dirname("),
     # Python pwd library
-    ("getpwuid", "pwd.getpwuid"),
-    ("getpwnam", "pwd.getpwnam"),
+    (r"\bgetpwuid\(", r"pwd.getpwuid("),
+    (r"\bgetpwnam\(", r"pwd.getpwnam("),
     # Python string library
-    ("toupper", "string.upper"),
-    ("tolower", "string.lower"),
+    (r"\btoupper\(", r"string.upper("),
+    (r"\btolower\(", r"string.lower("),
     # Python sys library
-    ("argv", "sys.argv"),
-    ("stdin", "sys.stdin"),
-    ("stdout", "sys.stdout"),
-    ("stderr", "sys.stderr"),
+    (r"\bargv\(", r"sys.argv("),
+    (r"\bstdin\(", r"sys.stdin("),
+    (r"\bstdout\(", r"sys.stdout("),
+    (r"\bstderr\(", r"sys.stderr("),
     # Python termios library
-    ("tcgetattr", "termios.tcgetattr"),		# Calling conventions differ
-    ("tcsetattr", "termios.tcsetattr"),		# Calling conventions differ
-    ("tcsendbreak", "termios.tcsendbreak"),
-    ("tcflush", "termios.tcflush"),
-    ("tcdrain", "termios.tcdrain"),
-    ("tcflow", "termios.tcflow"),
-    ("VMIN", "termios.VMIN"),
-    ("VMAX", "termios.VMAX"),
-    ("TCSANOW", "termios.TCSANOW"),
-    ("TCSADRAIN", "termios.TCSADRAIN"),
-    ("TCSAFLUSH", "termios.TCSAFLUSH"),
-    ("TCIFLUSH", "termios.TCIFLUSH"),
-    ("TCOFLUSH", "termios.TCOFLUSH"),
-    ("TCOOFF", "termios.TCOOFF"),
-    ("TCOON", "termios.TCOON"),
+    (r"\btcgetattr\(", r"termios.tcgetattr("),		# Calling conventions differ
+    (r"\btcsetattr\(", r"termios.tcsetattr("),		# Calling conventions differ
+    (r"\btcsendbreak\(", r"termios.tcsendbreak("),
+    (r"\btcflush\(", r"termios.tcflush("),
+    (r"\btcdrain\(", r"termios.tcdrain("),
+    (r"\btcflow\(", r"termios.tcflow("),
+    (r"\bVMIN\b", r"termios.VMIN"),
+    (r"\bVMAX\b", r"termios.VMAX"),
+    (r"\bTCSANOW\b", r"termios.TCSANOW"),
+    (r"\bTCSADRAIN\b", r"termios.TCSADRAIN"),
+    (r"\bTCSAFLUSH\b", r"termios.TCSAFLUSH"),
+    (r"\bTCIFLUSH\b", r"termios.TCIFLUSH"),
+    (r"\bTCOFLUSH\b", r"termios.TCOFLUSH"),
+    (r"\bTCOOFF\b", r"termios.TCOOFF"),
+    (r"\bTCOON\b", r"termios.TCOON"),
 )
 
-# These are C functions that need to turn into method calls on their first arg
-methodmappings = (
-    # File objects
-    ("fclose", "close", None),
-    ("fflush", "flush", None),
-    ("fileno", "fileno", None),
-    ("fprintf", "write", None),
-    ("fseek", "seek", None),
-    ("ftell", "tell", None),
-    ("ftruncate", "truncate", None),
-    # Curses library.  This is all the methods on the Windows Objects page.
-    # FIXME: curses mapping is far from complete
-    ("waddch",  "addch", "curses"),
-    ("waddnstr", "addnstr", "curses"),
-    ("waddstr", "addstr", "curses"),
-    ("wattroff", "attroff", "curses"),
-    ("wattron", "attron", "curses"),
-    ("wattrset", "attrset", "curses"),
-    ("wbkgd", "bkgd", "curses"),
-    ("wbkgdset", "bkgdset", "curses"),
-    ("wborder", "border", "curses"),
-    ("wbox", "box", "curses"),
-    ("wclear", "clear", "curses"),
-    ("clearok", "clearok", "curses"),	# No w prefix
-    ("wclrtobot", "clrtobot", "curses"),
-    ("wclrtoeol", "clrtoeol", "curses"),
-    ("wcursyncup", "cursyncup", "curses"),
-    ("wdelch", "delch", "curses"),
-    ("wdeleteln", "deleteln", "curses"),
-    ("derwin", "derwin", "curses"),	# No w prefix
-    ("wechochar", "echochar", "curses"),
-    ("wenclose", "enclose", "curses"),
-    ("werase", "erase", "curses"),
-    ("getbegyx", "getbegyx", "curses"),	# No w prefix
-    ("wgetch", "getch", "curses"),
-    ("getkey", "getkey", "curses"),	# No w prefix
-    ("getmaxyx", "getmaxyx", "curses"),	# No w prefix, calling convention differs
-    ("getparyx", "getparyx", "curses"),	# No w prefix
-    ("wgetstr", "getstr", "curses"),
-    ("getyx", "getyx", "curses"),		# No w prefix. calling convention differ)s
-    ("whline", "hline", "curses"),
-    ("idcok", "idcok", "curses"),		# No w prefix
-    ("idlok", "idlok", "curses"),		# No w prefix
-    ("immedok", "immedok", "curses"),	# No w prefix
-    ("winch", "inch", "curses"),
-    ("winsch", "insch", "curses"),
-    ("winsdelln", "insdelln", "curses"),
-    ("winsertln", "insertln", "curses"),
-    ("winsnstr", "insnstr", "curses"),
-    ("winsstr", "insstr", "curses"),
-    ("winstr", "instr", "curses"),
-    ("is_linetouched", "is_linetouched", "curses"),	# No w prefix
-    ("is_wintouched", "is_wintouched", "curses"),		# No w prefix
-    ("keypad", "keypad", "curses"),	# No w prefix
-    ("leaveok", "leaveok", "curses"),	# No w prefix
-    ("wmove", "move", "curses"),
-    ("mvderwin", "mvderwin", "curses"),	# No w prefix
-    ("wmvwin", "mvwin", "curses"),
-    ("nodelay", "nodelay", "curses"),	# No w prefix
-    ("notimeout", "notimeout", "curses"),	# No w prefix
-    ("wnoutrefresh", "noutrefresh", "curses"),
-    ("overlay", "overlay", "curses"),	# No w prefix
-    ("overwrite", "overwrite", "curses"),	# No w prefix
-    ("putwin", "putwin", "curses"),	# No w prefix
-    ("wredrawln", "redrawln", "curses"),	# No w prefix
-    ("redrawwin", "redrawwin", "curses"),	# No w prefix
-    ("wrefresh", "refresh", "curses"),	# No w prefix
-    ("wscroll", "scroll", "curses"),
-    ("wsetscrreg", "setscrreg", "curses"),
-    ("wscrollok", "scrollok", "curses"),
-    ("wstandend", "standend", "curses"),
-    ("wstandout", "standout", "curses"),
-    ("subpad", "subpad", "curses"),	# No w prefix
-    ("wsubwin", "subwin", "curses"),
-    ("wsyncdown", "syncdown", "curses"),
-    ("syncok", "syncok", "curses"),	# No w prefix
-    ("wsyncup", "syncup", "curses"),
-    ("wtimeout", "timeout", "curses"),
-    ("wtouchline", "touchline", "curses"),
-    ("wtouchwin", "touchwin", "curses"),
-    ("untouchwin", "untouchwin", "curses"),	# No w prefix
-    ("wvline", "vline", "curses"),
-    )
-
 falsefriends = (
-    "frexp", "getsyx", "getmaxyx", "glob", "ioctl", "modf",
-    "tcgetattr", "tcsetattr",
+    "frexp", r"getsyx", r"getmaxyx", r"glob", r"ioctl", r"modf",
+    "tcgetattr", r"tcsetattr",
     )
 
 # These have to be applied to the entire file without breaking it into regions
@@ -582,7 +875,7 @@ file_transformations = (
      r"\1 = (\2)"),
     (r"enum\s+(%(id)s\s*){\s*",  r"enum \1{\n"),
     (r"enum\s+{\s*",  r"enum {\n"),
-    (r"%(ind)s#\s*\$ctopy.*", ""),	# Make hints go away
+    (r"%(ind)s#\s*\$ctopy.*", r""),	# Make hints go away
     (r"(?:int )?main\(int\s+argc,\s+char\s+\*argv\)\s*{",
      "if __name__ == '__main__':"),
     )
@@ -626,7 +919,7 @@ repeat_transformations = (
     # Bare class-vars between commas get an initializer
     (r"(\n[ \t]*)(%(class)s)(\s+.*,)(\s*%(id)s),(.*);",r"\1\2\3\4 = \2(),\5;"),
     # Any declaration line not containing an initializer goes away.
-    (r"\n[ \t]*(?:%(type)s|%(class)s)[^=;]*;", ""),
+    (r"\n[ \t]*(?:%(type)s|%(class)s)[^=;]*;", r""),
     ),
     (
     # Group 4: At this point all declarations left have initializers.
@@ -641,7 +934,7 @@ repeat_transformations = (
     # This will strip remaining type declarators out of formal parameter lists.
     # It will also remove types from the beginning of declaration lines.
     # Won't nuke casts because it looks for at least one following whitespace.
-    (r"(?:%(type)s|%(class)s)[\s;]\s*", ""),
+    (r"(?:%(type)s|%(class)s)[\s;]\s*", r""),
     ),
 )
 
@@ -669,11 +962,11 @@ post_transformations = (
     (r"\bfor \(;;\)(\s*{)?", r"while True:"),
     (r"\bfor \((%(id)s) *= *0; *\1 *<= *([^;]+); *\1\+\+\)(\s*{)?",
      					r"for \1 in range(\2+1):"),
-    (r"\bfor \((%(id)s) *= *(\w+); *\1 *<= *([^;]+); *\1\+\+\)(\s*{)?",
+    (r"\bfor \((%(id)s) *= *([^;]+); *\1 *<= *([^;]+); *\1\+\+\)(\s*{)?",
      					r"for \1 in range(\2, \3+1):"),
     (r"\bfor \((%(id)s) *= *0; *\1 *< *([^;]+); *\1\+\+\)\s*{",
      					r"for \1 in range(\2):"),
-    (r"\bfor \((%(id)s) *= *(\w+); *\1 *< *([^;]+); *\1\+\+\)(\s*{)?",
+    (r"\bfor \((%(id)s) *= *([^;]+); *\1 *< *([^;]+); *\1\+\+\)(\s*{)?",
      					r"for \1 in range(\2, \3):"),
     (r"else if", r"elif"),
     (r"(?:} )?else\s*{", r"else"),
@@ -689,12 +982,12 @@ post_transformations = (
     # expression operations
     (r" *\&\& *", r" and "),
     (r" *\|\| *", r" or "),
-    (r"-\>", "."),
-    (r"!(?!=) *", "not "),
+    (r"-\>", r"."),
+    (r"!(?!=) *", r"not "),
     (r"(and|or) *\n", r"\1 \\\n"),
     # most common uses of address operator
-    (r"return *&", "return "),
-    (r"= *&", "= "),
+    (r"return *&", r"return "),
+    (r"= *&", r"= "),
     # increment and decrement statements
     (r"(%(id)s)\+\+([;\n])", r"\1 += 1\2"),
     (r"(%(id)s)--([;\n])", r"\1 -= 1\2"),
@@ -707,8 +1000,8 @@ post_transformations = (
     (r"\batof\(", r"float("),
     (r"\batol\(", r"long("),
     (r"\bfopen\(", r"open("),
-    (r"\bputchar\(", "stdout.write("),
-    (r"\bgetchar\(\)", "stdout.read(1)"),
+    (r"\bputchar\(", r"stdout.write("),
+    (r"\bgetchar\(\)", r"stdout.read(1)"),
     (r"\bstrlen\(", r"len("),
     (r"\bstrcmp\((%(exp)s),\s*(%(exp)s)\)\s*==\s*0", r"\1 == \2"),
     (r"\bstrcmp\((%(exp)s),\s*(%(exp)s)\)\s*!=\s*0", r"\1 != \2"),
@@ -716,10 +1009,10 @@ post_transformations = (
     # Python time library
     (r"\btime\(NULL\)", r"time.time()"),
     # well-known includes
-    (r"#include \<string.h\>\n", ""),
-    (r"#include \<stdlib.h\>\n", ""),
-    (r"#include \<stdbool.h\>\n", ""),
-    (r"#include \<stdio.h\>\n", "import sys\n"),
+    (r"#include \<string.h\>\n", r""),
+    (r"#include \<stdlib.h\>\n", r""),
+    (r"#include \<stdbool.h\>\n", r""),
+    (r"#include \<stdio.h\>\n", r"import sys\n"),
     (r"#include \<math.h\>\n", r"import math\n"),
     (r"#include \<time.h\>\n", r"import time\n"),
     (r"#include \<regex.h\>\n", r"import re\n"),
@@ -731,7 +1024,7 @@ final_transformations = (
     # block delimiters -- do these as late as possible, they're useful
     (r";(%(eol)s)", r"\1"),
     (r"\n[ \t]*}%(eol)s", r""),
-    (r"(?<!=\n)\n{\n", "\n"),	# Start-of-line brace that's not an initializer
+    (r"(?<!=\n)\n{\n", r"\n"),	# Start-of-line brace that's not an initializer
     (r"%% \(,(%(ind)s)", r"%\1("),
     )
 
@@ -898,23 +1191,9 @@ def ctopy(input):
                     regions[i] = repeat_apply(hack, regions[i])
                 if debug:
                     print "Function and method mappings begin"
-                for (fro, to) in funmappings:
-                    if re.search(r"\b" + fro + r"\b", regions[i]):
-                        regions[i] = re.sub(r"\b" + fro + r"\b", to, regions[i])
-                        (module, function) = to.split(".")
-                        if module not in importlist and module:
-                            importlist.append(module)
-                for (fro, to, module) in methodmappings:
-                    if re.search(r"\b" + fro + r"\b\(", regions[i]):
-                        singlearg = r"\b"+fro+(r"\b\((%(exp)s)\)"%shorthands)
-                        if re.search(singlearg, regions[i]):
-                            regions[i] = re.sub(singlearg,
-                                                r"\1." + to +"()",
-                                                regions[i])
-                        else:
-                            regions[i] = re.sub(r"\b"+fro+r"\b\(([^,]*),\s*",
-                                                r"\1." + to + "(",
-                                                regions[i])
+                for (fro, to, module) in funmappings:
+                    if re.search(fro, regions[i]):
+                        regions[i] = re.sub(fro, to, regions[i])
                         if module not in importlist and module:
                             importlist.append(module)
                 for name in falsefriends:
