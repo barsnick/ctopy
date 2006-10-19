@@ -2,10 +2,13 @@
 """
 ctopy -- a quick and dirty C-to-Python translator
 
-FIXME: Python library bindings are as of 2.6a0.
 FIXME: The curses mapping is quite incomplete.
-FIXME: libraries not yet mapped: curses.panel, dbm, md5.
-FIXME: Python library scan is only complete up to logging.
+
+Libraries not mapped that theoretically could be: curses.panel, dbm,
+md5, popen2, pty, resource, sha, subprocess, syslog, time.  Some of these
+would need more elaborate machinery for method translation.
+
+Python library bindings are as of 2.6a0.
 """
 import sys, re
 
@@ -454,6 +457,9 @@ funmappings = (
     # Python os.path library
     ("basename", "os.path.basename"),
     ("dirname", "os.path.dirname"),
+    # Python pwd library
+    ("getpwuid", "pwd.getpwuid"),
+    ("getpwnam", "pwd.getpwnam"),
     # Python string library
     ("toupper", "string.upper"),
     ("tolower", "string.lower"),
@@ -462,6 +468,22 @@ funmappings = (
     ("stdin", "sys.stdin"),
     ("stdout", "sys.stdout"),
     ("stderr", "sys.stderr"),
+    # Python termios library
+    ("tcgetattr", "termios.tcgetattr"),		# Calling conventions differ
+    ("tcsetattr", "termios.tcsetattr"),		# Calling conventions differ
+    ("tcsendbreak", "termios.tcsendbreak"),
+    ("tcflush", "termios.tcflush"),
+    ("tcdrain", "termios.tcdrain"),
+    ("tcflow", "termios.tcflow"),
+    ("VMIN", "termios.VMIN"),
+    ("VMAX", "termios.VMAX"),
+    ("TCSANOW", "termios.TCSANOW"),
+    ("TCSADRAIN", "termios.TCSADRAIN"),
+    ("TCSAFLUSH", "termios.TCSAFLUSH"),
+    ("TCIFLUSH", "termios.TCIFLUSH"),
+    ("TCOFLUSH", "termios.TCOFLUSH"),
+    ("TCOOFF", "termios.TCOOFF"),
+    ("TCOON", "termios.TCOON"),
 )
 
 # These are C functions that need to turn into method calls on their first arg
@@ -550,6 +572,7 @@ methodmappings = (
 
 falsefriends = (
     "frexp", "getsyx", "getmaxyx", "glob", "ioctl", "modf",
+    "tcgetattr", "tcsetattr",
     )
 
 # These have to be applied to the entire file without breaking it into regions
@@ -699,6 +722,7 @@ post_transformations = (
     (r"#include \<time.h\>\n", r"import time\n"),
     (r"#include \<regex.h\>\n", r"import re\n"),
     (r"#include \<curses.h\>\n", r"import curses\n"),
+    (r"#include \<termios.h\>\n", r"import termios\n"),
 )
 
 final_transformations = (
