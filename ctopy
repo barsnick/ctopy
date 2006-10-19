@@ -4,8 +4,8 @@ ctopy -- a quick and dirty C-to-Python translator
 
 FIXME: Python library bindings are as of 2.6a0.
 FIXME: The curses mapping is quite incomplete.
-FIXME: libraries not yet mapped: curses.panel, dbm.
-FIXME: Python library scan is only complete up to 2.3 gdbm.
+FIXME: libraries not yet mapped: curses.panel, dbm, md5.
+FIXME: Python library scan is only complete up to logging.
 """
 import sys, re
 
@@ -293,7 +293,14 @@ funmappings = (
     ("LOCK_EX", "fcntl.LOCK_EX"),
     ("LOCK_SH", "fcntl.LOCK_SH"),
     ("LOCK_NB", "fcntl.LOCK_NB"),
-     # Python math library
+    # Python getpass library
+    ("getpass", "getpass.getpass"),
+    # Python glob library
+    ("glob", "glob.glob"),	# Calling conventions differ
+    # Python grp library
+    ("getgrgid", "grp.getgrgid"),
+    ("getgrnam", "grp.getgrnam"),
+    # Python math library
     ("acos", "math.acos"),
     ("asin", "math.asin"),
     ("atan", "math.atan"),
@@ -542,7 +549,7 @@ methodmappings = (
     )
 
 falsefriends = (
-    "frexp", "getsyx", "getmaxyx", "ioctl", "modf",
+    "frexp", "getsyx", "getmaxyx", "glob", "ioctl", "modf",
     )
 
 # These have to be applied to the entire file without breaking it into regions
@@ -553,6 +560,8 @@ file_transformations = (
     (r"enum\s+(%(id)s\s*){\s*",  r"enum \1{\n"),
     (r"enum\s+{\s*",  r"enum {\n"),
     (r"%(ind)s#\s*\$ctopy.*", ""),	# Make hints go away
+    (r"(?:int )?main\(int\s+argc,\s+char\s+\*argv\)\s*{",
+     "if __name__ == '__main__':"),
     )
 
 # These need to be applied repeatedly within regions.
