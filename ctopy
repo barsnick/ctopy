@@ -72,6 +72,7 @@ funmappings = (
     (r"\baddnstr(", r"stdscr.addnstr(", "curses"),
     #addnwstr                curs_addwstr(3X)
     (r"\baddstr\(", r"stdscr.addstr(", "curses"),
+    # OK after this point
     #addwstr                 curs_addwstr(3X)
     #assume_default_colors   default_colors(3X)*
     #attr_get                curs_attr(3X)
@@ -85,7 +86,6 @@ funmappings = (
     (r"\bbeep\(", r"curses.beep(", r"curses"),
     (r"\bbkgd\(", r"stdscr.bkgd(", r"curses"),
     (r"\bbkgdset\(", r"stsdcr.bkgdset(", r"curses"),
-    # OK after this point
     #bkgrnd                  curs_bkgrnd(3X)
     #bkgrndset               curs_bkgrnd(3X)
     (r"\bborder\(", r"stdscr.border(", r"curses"), 
