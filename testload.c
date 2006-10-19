@@ -1,7 +1,7 @@
 /*
  * This is a test load for ctopy, the C to Python translator.
  * It is syntactically valid C, parts taken from the source for 
- * Super Star Trek.
+ * Super Star Trek and Galaxis.
  *
  * This boxed comment at the beginning should turn into a series of
  * Python comments with # at the left margin.  Both comment delimiters
@@ -111,16 +111,56 @@ static int randdevice(void)
 	10,	/* DDRAY: death ray			 1.0% */
 	30,	/* DDSP: deep-space probes		 3.0% */
     };
-    // ctopy strips the type away, but isn't yet smart enough 
-    // to remove the following variables that don't have initializers.
-    int sum, i, idx = Rand() * 1000.0;	/* weights must sum to 1000 */
+    // $ctopy class coord
+    // Scalar type , one initializer just before semi, trailing comment
+    int sum = 0, i, idx = Rand() * 1000.0;	/* weights must sum to 1000 */
+    // All scalars -- this line should vanish
+    int i, i2, j, ideltax, ideltay, ifindit, iwhichb;
+    // Class instances variables require initialization
+    coord iq, sc, ibq;
+    // Arrays don't get initializers.  This could be handled better.
+    int basetbl[BASEMAX+1];
+    // Scalar, just one, should vanish
+    bool avoid;
 
     // simple C for loops are translated
     for (i = 0; i < NDEVICES; i++) {
 	sum += weights[i];
-	if (idx < sum)
+	if (idx < sum) {
+	    fprintf(stdout, "Found device %i\n", i); 
 	    return i;
     }
     return -1;	/* we should never get here, but this quiets GCC */
 }
 
+// Test the ability to declare a type is mapped into a class and pass
+// back a reference to it.  Also test the hint parser.
+// $ctopy class event
+
+event *unschedule(int evtype)
+/* remove an event from the schedule */
+{
+    // Test our ability to handle gettexted format strings
+    printf(_("Unscheduling event %d\n"), evtype)
+    game.future[evtype].date = FOREVER;
+    // The & should be stripped
+    return &game.future[evtype];
+}
+
+main(int argc, char *argv)
+{
+    intro();
+    do {
+	initgame();
+	redisplay(TRUE);
+
+	while (boatsfound < LIFEBOATS && !allmarked() && domove())
+	    continue;
+
+	redisplay(FALSE);	/* force found count to be updated */
+	prompt("Want to play again [yn]? ");
+    } while
+	(confirm());
+    outro();
+    /*NOTREACHED*/
+}
