@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 """
-ctopy -- a quick and dirty C-to-Python translator
-
-FIXME: The curses mapping is quite incomplete.
+ctopy -- a quick and dirty C-to-Python translator.
 
 Libraries not mapped that theoretically could be: curses.panel, dbm,
 md5, popen2, pty, resource, sha, subprocess, syslog, time.  Some of these
@@ -24,7 +22,7 @@ shorthands = {
     'ind' : r"(\n[ \t]*)",		# Whitespace at start of line
     'eol' : r"[ \t]*(?=\n|\Z)",		# Whitespace to end of line or comment
     'arg' : r"([^,]+),\s*",		# initial or medial argument
-    'farg' : r"([^)]+)",			# final argument
+    'farg' : r"([^)]+)",		# final argument
 }
 
 # C functions and constants to be mapped into Python standard library bindings.
@@ -50,7 +48,8 @@ funmappings = (
     # Mappings marked "EXCEPTION" violate the convention that the C names
     # of window methods begin with 'w'. Mappings marked "NONTRIVIAL"
     # map a C entry point into a Python entry point with a different name,
-    # usually toi throw away a length argument Python doesn't need.
+    # usually to throw away a length argument Python doesn't need or vecause
+    # the Python method handles a position as the first two arguments.
     (r"\bCOLOR_PAIR\(", "curses.color_pair(", "curses"),
     (r"\bPAIR_NUMBER\(", "curses.pair_number(", "curses"),
     #_nc_tracebits           curs_trace(3X)*
@@ -136,7 +135,7 @@ funmappings = (
     (r"\bgetmouse\(%(farg)s\)", r"\1 = curses.getmouse()", "curses"),
     #getn_wstr               curs_get_wstr(3X)
     (r"\bgetnstr\(%(arg)s%(farg)s\)",	# NONTRIVIAL
-     r"\1 = stdscr.getstr(\2)", "curses"),
+     r"\1 = stdscr.getstr()", "curses"),
     (r"\bgetparyx\(%(arg)s%(arg)s%(farg)s\)",	# EXCEPTION
      r"(\2, \3) = \1.getparyx()", "curses"),
     (r"\bgetsyx\(%(arg)s%(farg)s\)", r"(\1, \2) = curses.getsyx()", "curses"),
@@ -168,53 +167,55 @@ funmappings = (
     #ins_nwstr               curs_ins_wstr(3X)
     #ins_wch                 curs_ins_wch(3X)
     #ins_wstr                curs_ins_wstr(3X)
-    #                 insch                   curs_insch(3X)
-    #                 insdelln                curs_deleteln(3X)
-    #                 insertln                curs_deleteln(3X)
-    #                 insnstr                 curs_insstr(3X)
-    #                 insstr                  curs_insstr(3X)
-    #                 instr                   curs_instr(3X)
-    #                 intrflush               curs_inopts(3X)
-    #                 inwstr                  curs_inwstr(3X)
-    #                 is_linetouched          curs_touch(3X)
-    #                 is_wintouched           curs_touch(3X)
-    #                 isendwin                curs_initscr(3X)
-    #                 key_defined             key_defined(3X)*
-    #                 key_name                curs_util(3X)
-    #                 keybound                keybound(3X)*
-    #                 keyname                 curs_util(3X)
-    #                 keyok                   keyok(3X)*
-    #                 keypad                  curs_inopts(3X)
-    #                 killchar                curs_termattrs(3X)
-    #                 killwchar               curs_termattrs(3X)
-    #                 leaveok                 curs_outopts(3X)
-    #                 longname                curs_termattrs(3X)
-    #                 mcprint                 curs_print(3X)*
-    #                 meta                    curs_inopts(3X)
-    #                 mouse_trafo             curs_mouse(3X)*
-    #                 mouseinterval           curs_mouse(3X)*
-    #                 mousemask               curs_mouse(3X)*
-    #                 move                    curs_move(3X)
-    #                 mvadd_wch               curs_add_wch(3X)
-    #                 mvadd_wchnstr           curs_add_wchstr(3X)
-    #                 mvadd_wchstr            curs_add_wchstr(3X)
-    #                 mvaddch                 curs_addch(3X)
-    #                 mvaddchnstr             curs_addchstr(3X)
-    #                 mvaddchstr              curs_addchstr(3X)
-    #                 mvaddnstr               curs_addstr(3X)
-    #                 mvaddnwstr              curs_addwstr(3X)
-    #                 mvaddstr                curs_addstr(3X)
-    #                 mvaddwstr               curs_addwstr(3X)
-    #                 mvchgat                 curs_attr(3X)
-    #                 mvcur                   curs_terminfo(3X)
-    #                 mvdelch                 curs_delch(3X)
-    #                 mvderwin                curs_window(3X)
-    #                 mvget_wch               curs_get_wch(3X)
-    #                 mvget_wstr              curs_get_wstr(3X)
-    #                 mvgetch                 curs_getch(3X)
-    #                 mvgetn_wstr             curs_get_wstr(3X)
-    #                 mvgetnstr               curs_getstr(3X)
-    #                 mvgetstr                curs_getstr(3X)
+    (r"\binsch\(", r"stdscr.insch(", "curses"),
+    (r"\binsdelln\(", r"stdscr.insdelln(", "curses"),
+    (r"\binsertln\(", r"stdscr.insertln(", "curses"),
+    (r"\binsnstr\(", r"stdscr.insnstr(", "curses"),
+    (r"\binsstr\(", r"stdscr.insstr(", "curses"),
+    (r"\binstr\(", r"stdscr.instr(", "curses"),
+    (r"\bintrflush\(\)", r"curses.intrflush()", "curses"),
+    #inwstr                  curs_inwstr(3X)
+    (r"\bis_linetouched\(%(arg)s", r"\1.is_linetouched(", "curses"),# EXCEPTION
+    (r"\bis_wintouched\(%(arg)s", r"\1.is_wintouched(", "curses"),# EXCEPTION
+    (r"\bisendwin\(\)", r"curses.isendwin()", "curses"),
+    #key_defined             key_defined(3X)*
+    #key_name                 curs_util(3X)
+    #keybound                keybound(3X)*
+    (r"\bkeyname\(", r"curses.keyname(", "curses"),
+    #keyok                   keyok(3X)*
+    (r"\bkeypad\(%(arg)s", r"\1.keypad(", "curses"),	# EXCEPTION
+    (r"\bkillchar\(\)", r"curses.killchar()", "curses"),
+    #killwchar               curs_termattrs(3X)
+    (r"\bleaveok\(%(arg)s", r"\1.leaveok(", "curses"),	# EXCEPTION
+    (r"\blongname\(\)", r"curses.longname()", "curses"),
+    #mcprint                 curs_print(3X)*
+    (r"\bmeta\(", r"curses.meta(", "curses"),
+    #mouse_trafo             curs_mouse(3X)*
+    (r"\bmouseinterval\(", r"curses.mouseinterval(", "curses"),
+    (r"\bmousemask\(", r"curses.mousemask(", "curses"),
+    (r"\bmove\(", r"stdscr.move(", "curses"),
+    #mvadd_wch               curs_add_wch(3X)
+    #mvadd_wchnstr           curs_add_wchstr(3X)
+    #mvadd_wchstr            curs_add_wchstr(3X)
+    (r"\bmvaddch\(", r"stdscr.addch(", "curses"),	# NONTRIVIAL
+    #mvaddchnstr             curs_addchstr(3X)
+    #mvaddchstr              curs_addchstr(3X)
+    (r"\bmvaddnstr\(", r"stdscr.addnstr(", "curses"),	# NONTRIVIAL
+    #mvaddnwstr              curs_addwstr(3X)
+    (r"\bmvaddstr\(", r"stdscr.addstr(", "curses"),	# NONTRIVIAL
+    #mvaddwstr               curs_addwstr(3X)
+    #mvchgat                 curs_attr(3X)
+    #mvcur                   curs_terminfo(3X)
+    (r"\bmvdelch\(", r"stdscr.delch(", "curses"),	# NONTRIVIAL
+    (r"\bmvderwin\(%(arg)s", r"\1.derwin(", "curses"),	# NONTRIVIAL,EXCEPTION
+    #mvget_wch               curs_get_wch(3X)
+    #mvget_wstr              curs_get_wstr(3X)
+    (r"\bmvgetch\(%(arg)s", r"stdscr.getch(", "curses"),	# NONTRIVIAL
+    #mvgetn_wstr             curs_get_wstr(3X)
+    (r"\bmvgetnstr\(%(arg)s%(arg)s%(arg)s%(farg)s\)",		# NONTRIVIAL
+     r"\3 = stdscr.getstr(\1, \2)", "curses"),
+    (r"\bmvgetstr\(%(arg)s%(arg)s%(farg)s\)",		# NONTRIVIAL
+     r"\3 = stdscr.getstr(\1, \2)", "curses"),
     #                 mvhline                 curs_border(3X)
     #                 mvhline_set             curs_border_set(3X)
     #                 mvin_wch                curs_in_wch(3X)
