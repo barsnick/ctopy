@@ -106,7 +106,6 @@ funmappings = (
     (r"\bdef_shell_mode\(", r"curses.def_shell_mode(", r"curses"),
     #define_key              define_key(3X)*
     #del_curterm             curs_terminfo(3X)
-    # OK before here
     (r"\bdelay_output\(", r"curses.delay_output(", r"curses"),
     (r"\bdelch\(", r"stdscr.delch(", r"curses"),
     (r"\bdeleteln\(\)", r"stdscr.deleteln()", r"curses"),
@@ -414,15 +413,15 @@ funmappings = (
     #wchgat                  curs_attr(3X)
     (r"\bwclear\(%(farg)s\)", "\1.clear()", "curses"),	# NONTRIVIAL
     (r"\bwclrtobot\(%(farg)s\)", "\1.clrtobot()", "curses"),	# NONTRIVIAL
-    (r"\bwclrtoeol\(%(farg)s)", "\1.clrtoeol()", "curses"),	# NONTRIVIAL
+    (r"\bwclrtoeol\(%(farg)s\)", "\1.clrtoeol()", "curses"),	# NONTRIVIAL
     #wcolor_set              curs_attr(3X)
     #wcursyncup              curs_window(3X)
     (r"\bwdelch\(%(arg)s", "\1.delch(", "curses"),	# NONTRIVIAL
-    (r"\bwdeleteln\(%(farg)s)", "\1.deleteln()", "curses"),	# NONTRIVIAL
+    (r"\bwdeleteln\(%(farg)s\)", "\1.deleteln()", "curses"),	# NONTRIVIAL
     #wecho_wchar             curs_add_wch(3X)
     (r"\bwechochar\(%(arg)s", "\1.echochar(", "curses"),	# NONTRIVIAL
     (r"\bwenclose\(%(arg)s", "\1.enclose(", "curses"),	# NONTRIVIAL
-    (r"\bwerase\(%(farg)s)", "\1.erase()", "curses"),	# NONTRIVIAL
+    (r"\bwerase\(%(farg)s\)", "\1.erase()", "curses"),	# NONTRIVIAL
     #wget_wch                curs_get_wch(3X)
     #wget_wstr               curs_get_wstr(3X)
     #wgetbkgrnd              curs_bkgrnd(3X)
@@ -468,7 +467,6 @@ funmappings = (
     (r"\bwtouchln\(%(arg)s", "\1.touchln(", "curses"),	# NONTRIVIAL
     (r"\bwunctrl\(%(arg)s", r"\1.unctrl(", "curses"),	# NONTRIVIAL
     (r"\bwvline\(%(arg)s", r"\1.vline(", "curses"),	# NONTRIVIAL
-    # OK after here
     #wvline_set              curs_border_set(3X)
     # And this does the curses library constants
     (r"\bA_ATTRIBUTES\b", r"curses.A_ATTRIBUTES", "curses"),
