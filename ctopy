@@ -106,9 +106,10 @@ funmappings = (
     (r"\bdef_shell_mode\(", r"curses.def_shell_mode(", r"curses"),
     #define_key              define_key(3X)*
     #del_curterm             curs_terminfo(3X)
+    # OK before here
     (r"\bdelay_output\(", r"curses.delay_output(", r"curses"),
     (r"\bdelch\(", r"stdscr.delch(", r"curses"),
-    (r"\bdeleteln\(", r"stdscr.deleteln(", r"curses"),
+    (r"\bdeleteln\(\)", r"stdscr.deleteln()", r"curses"),
     #delscreen               curs_initscr(3X)
     #delwin                  curs_window(3X)
     (r"\bderwin\(%(arg)s", r"\1.derwin(", "curses"),		# EXCEPTION
@@ -375,98 +376,99 @@ funmappings = (
     (r"\bungetmouse\(%(arg)s", r"\1.ungetmouse(", "curses"),	# False friend
     (r"\buntouchwin\(%(farg)s\)", r"\1.untouchwin()", "curses"),
     (r"\buse_default_colors\(", r"curses.use_default_colors(", "curses"),
-    #                 use_env                 curs_util(3X)
-    #                 use_extended_names      curs_extend(3X)*
-    #                 vid_attr                curs_terminfo(3X)
-    #                 vid_puts                curs_terminfo(3X)
-    #                 vidattr                 curs_terminfo(3X)
-    #                 vidputs                 curs_terminfo(3X)
-    #                 vline                   curs_border(3X)
-    #                 vline_set               curs_border_set(3X)
+    (r"use_env\(", r"use_env(", "curses"),
+    #use_extended_names      curs_extend(3X)*
+    #vid_attr                curs_terminfo(3X)
+    #vid_puts                curs_terminfo(3X)
+    #vidattr                 curs_terminfo(3X)
+    #vidputs                 curs_terminfo(3X)
+    (r"vline\(", "stdscr.vline(", "curses"),
+    #vline_set               curs_border_set(3X)
     #vw_printw               curs_printw(3X)
     #vw_scanw                curs_scanw(3X)
     #vwprintw                curs_printw(3X)
     #vwscanw                 curs_scanw(3X)
     #wadd_wch                curs_add_wch(3X)
-    #                 wadd_wchnstr            curs_add_wchstr(3X)
-    #                 wadd_wchstr             curs_add_wchstr(3X)
-    #                 waddch                  curs_addch(3X)
-    #                 waddchnstr              curs_addchstr(3X)
-    #                 waddchstr               curs_addchstr(3X)
-    #                 waddnstr                curs_addstr(3X)
-    #                 waddnwstr               curs_addwstr(3X)
-    #                 waddstr                 curs_addstr(3X)
-    #                 waddwstr                curs_addwstr(3X)
-    #                 wattr_get               curs_attr(3X)
-    #                 wattr_off               curs_attr(3X)
-    #                 wattr_on                curs_attr(3X)
-    #                 wattr_set               curs_attr(3X)
-    #                 wattroff                curs_attr(3X)
-    #                 wattron                 curs_attr(3X)
-    #                 wattrset                curs_attr(3X)
-    #                 wbkgd                   curs_bkgd(3X)
-    #                 wbkgdset                curs_bkgd(3X)
-    #                 wbkgrnd                 curs_bkgrnd(3X)
-    #                 wbkgrndset              curs_bkgrnd(3X)
-    #                 wborder                 curs_border(3X)
-    #                 wborder_set             curs_border_set(3X)
-    #                 wchgat                  curs_attr(3X)
-    #                 wclear                  curs_clear(3X)
-    #                 wclrtobot               curs_clear(3X)
-    #                 wclrtoeol               curs_clear(3X)
-    #                 wcolor_set              curs_attr(3X)
-    #                 wcursyncup              curs_window(3X)
-    #                 wdelch                  curs_delch(3X)
-    #                 wdeleteln               curs_deleteln(3X)
-    #                 wecho_wchar             curs_add_wch(3X)
-    #                 wechochar               curs_addch(3X)
-    #                 wenclose                curs_mouse(3X)*
-    #                 werase                  curs_clear(3X)
-    #                 wget_wch                curs_get_wch(3X)
-    #                 wget_wstr               curs_get_wstr(3X)
-    #                 wgetbkgrnd              curs_bkgrnd(3X)
-    #                 wgetch                  curs_getch(3X)
-    #                 wgetn_wstr              curs_get_wstr(3X)
-    #                 wgetnstr                curs_getstr(3X)
-    #                 wgetstr                 curs_getstr(3X)
-    #                 whline                  curs_border(3X)
-    #                 whline_set              curs_border_set(3X)
+    #wadd_wchnstr            curs_add_wchstr(3X)
+    #wadd_wchstr             curs_add_wchstr(3X)
+    (r"\bwaddch\(%(arg)s", "\1.addch(", "curses"),	# NONTRIVIAL
+    #waddchnstr              curs_addchstr(3X)
+    #waddchstr               curs_addchstr(3X)
+    (r"\bwaddnstr\(%(arg)s", "\1.addnstr(", "curses"),	# NONTRIVIAL
+    #waddnwstr               curs_addwstr(3X)
+    (r"\bwaddstr\(%(arg)s", "\1.addstr(", "curses"),	# NONTRIVIAL
+    #waddwstr                curs_addwstr(3X)
+    #wattr_get               curs_attr(3X)
+    #wattr_off               curs_attr(3X)
+    #wattr_on                curs_attr(3X)
+    #wattr_set               curs_attr(3X)
+    (r"\bwattroff\(%(arg)s", "\1.attroff(", "curses"),	# NONTRIVIAL
+    (r"\bwattron\(%(arg)s", "\1.attron(", "curses"),	# NONTRIVIAL
+    (r"\bwattrset\(%(arg)s", "\1.attrset(", "curses"),	# NONTRIVIAL
+    (r"\bwbkgd\(%(arg)s", "\1.bkgd(", "curses"),	# NONTRIVIAL
+    (r"\bwbkgdset\(%(arg)s", "\1.bkgdset(", "curses"),	# NONTRIVIAL
+    #wbkgrnd                 curs_bkgrnd(3X)
+    #wbkgrndset              curs_bkgrnd(3X)
+    (r"\bwborder\(%(arg)s", "\1.border(", "curses"),	# NONTRIVIAL
+    #wborder_set             curs_border_set(3X)
+    #wchgat                  curs_attr(3X)
+    (r"\bwclear\(%(farg)s\)", "\1.clear()", "curses"),	# NONTRIVIAL
+    (r"\bwclrtobot\(%(farg)s\)", "\1.clrtobot()", "curses"),	# NONTRIVIAL
+    (r"\bwclrtoeol\(%(farg)s)", "\1.clrtoeol()", "curses"),	# NONTRIVIAL
+    #wcolor_set              curs_attr(3X)
+    #wcursyncup              curs_window(3X)
+    (r"\bwdelch\(%(arg)s", "\1.delch(", "curses"),	# NONTRIVIAL
+    (r"\bwdeleteln\(%(farg)s)", "\1.deleteln()", "curses"),	# NONTRIVIAL
+    #wecho_wchar             curs_add_wch(3X)
+    (r"\bwechochar\(%(arg)s", "\1.echochar(", "curses"),	# NONTRIVIAL
+    (r"\bwenclose\(%(arg)s", "\1.enclose(", "curses"),	# NONTRIVIAL
+    (r"\bwerase\(%(farg)s)", "\1.erase()", "curses"),	# NONTRIVIAL
+    #wget_wch                curs_get_wch(3X)
+    #wget_wstr               curs_get_wstr(3X)
+    #wgetbkgrnd              curs_bkgrnd(3X)
+    (r"\bwgetch\(%(farg)s\)", "\1.getch()", "curses"),	# NONTRIVIAL
+    #wgetn_wstr              curs_get_wstr(3X)
+    (r"\bwgetnstr\(%(arg)s", "\1.getstr(", "curses"),	# NONTRIVIAL
+    (r"\bwgetstr\(%(arg)s", "\1.getstr(", "curses"),	# NONTRIVIAL
+    (r"\bwhline\(%(arg)s", "\1.hline(", "curses"),	# NONTRIVIAL
+    #whline_set              curs_border_set(3X)
     #win_wch                 curs_in_wch(3X)
     #win_wchnstr             curs_in_wchstr(3X)
     #win_wchstr              curs_in_wchstr(3X)
-    #                 winch                   curs_inch(3X)
-    #                 winchnstr               curs_inchstr(3X)
-    #                 winchstr                curs_inchstr(3X)
-    #                 winnstr                 curs_instr(3X)
+    (r"\bwinch\(%(arg)s", "\1.inch(", "curses"),	# NONTRIVIAL
+    #winchnstr               curs_inchstr(3X)
+    #winchstr                curs_inchstr(3X)
+    (r"\bwinnstr\(%(arg)s", "\1.instr(", "curses"),	# NONTRIVIAL
     #winnwstr                curs_inwstr(3X)
     #wins_nwstr              curs_ins_wstr(3X)
     #wins_wch                curs_ins_wch(3X)
     #wins_wstr               curs_ins_wstr(3X)
-    #                 winsch                  curs_insch(3X)
-    #                 winsdelln               curs_deleteln(3X)
-    #                 winsertln               curs_deleteln(3X)
-    #                 winsnstr                curs_insstr(3X)
-    #                 winsstr                 curs_insstr(3X)
-    #                 winstr                  curs_instr(3X)
-    #                 winwstr                 curs_inwstr(3X)
+    (r"\bwinsch\(%(arg)s", "\1.insch(", "curses"),	# NONTRIVIAL
+    (r"\bwinsdelln\(%(arg)s", "\1.insdelln(", "curses"),	# NONTRIVIAL
+    (r"\bwinsertln\(%(farg)s\)", "\1.insertln()", "curses"),	# NONTRIVIAL
+    (r"\bwinsnstr\(%(arg)s", "\1.insnstr(", "curses"),	# NONTRIVIAL
+    (r"\binsstr\(%(arg)s", "\1.insstr(", "curses"),	# NONTRIVIAL
+    (r"\bwinstr\(%(arg)s", "\1.instr(", "curses"),	# NONTRIVIAL
+    #winwstr                 curs_inwstr(3X)
     #wmouse_trafo            curs_mouse(3X)*
-    #                 wmove                   curs_move(3X)
-    #                 wnoutrefresh            curs_refresh(3X)
-    #                 wprintw                 curs_printw(3X)
-    #                 wredrawln               curs_refresh(3X)
-    #                 wrefresh                curs_refresh(3X)
-    #                 wresize                 wresize(3X)*
-    #                 wscanw                  curs_scanw(3X)
+    (r"\bwmove\(%(arg)s", "\1.move(", "curses"),	# NONTRIVIAL
+    (r"\bwnoutrefresh\(%(arg)s", "\1.noutrefresh(", "curses"),	# NONTRIVIAL
+    (r"\bwprintw\(%(arg)s", "\1.addstr(", "curses"),	# NONTRIVIAL
+    (r"\bwredrawln\(%(arg)s", "\1.redrawln(", "curses"),	# NONTRIVIAL
+    (r"\bwrefresh\(%(arg)s", "\1.refresh(", "curses"),	# NONTRIVIAL
+    (r"\bwresize\(%(arg)s", "\1.resize(", "curses"),	# NONTRIVIAL
+    #wscanw                  curs_scanw(3X)
     (r"\bwscrl\(%(arg)s", r"\1.scroll(", "curses"),	# NINTRIVIAL
-    #                 wsetscrreg              curs_outopts(3X)
-    #                 wstandend               curs_attr(3X)
-    #                 wstandout               curs_attr(3X)
-    #                 wsyncdown               curs_window(3X)
-    #                 wsyncup                 curs_window(3X)
-    #                 wtimeout                curs_inopts(3X)
-    #                 wtouchln                curs_touch(3X)
+    (r"\bwsetscrreg\(%(arg)s", "\1.setscrreg(", "curses"),	# NONTRIVIAL
+    (r"\bwstandend\(%(arg)s", "\1.standend(", "curses"),	# NONTRIVIAL
+    (r"\bwstandout\(%(arg)s", "\1.standout(", "curses"),	# NONTRIVIAL
+    (r"\bwsyncdown\(%(farg)s\)", "\1.syncdown()", "curses"),	# NONTRIVIAL
+    (r"\bwsyncup\(%(arg)s", "\1.syncup(", "curses"),	# NONTRIVIAL
+    (r"\bwtimeout\(%(arg)s", "\1.timeout(", "curses"),	# NONTRIVIAL
+    (r"\bwtouchln\(%(arg)s", "\1.touchln(", "curses"),	# NONTRIVIAL
     (r"\bwunctrl\(%(arg)s", r"\1.unctrl(", "curses"),	# NONTRIVIAL
     (r"\bwvline\(%(arg)s", r"\1.vline(", "curses"),	# NONTRIVIAL
+    # OK after here
     #wvline_set              curs_border_set(3X)
     # And this does the curses library constants
     (r"\bA_ATTRIBUTES\b", r"curses.A_ATTRIBUTES", "curses"),
