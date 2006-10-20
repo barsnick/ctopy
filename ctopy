@@ -173,11 +173,11 @@ funmappings = (
     (r"\binsertln\(", r"stdscr.insertln(", "curses"),
     (r"\binsnstr\(", r"stdscr.insnstr(", "curses"),
     (r"\binsstr\(", r"stdscr.insstr(", "curses"),
-    (r"\binstr\(%(arg)s\)", r"\1 = stdscr.instr()", "curses"),
+    (r"\binstr\(%(farg)s\)", r"\1 = stdscr.instr()", "curses"),
     (r"\bintrflush\(\)", r"curses.intrflush()", "curses"),
     #inwstr                  curs_inwstr(3X)
     (r"\bis_linetouched\(%(arg)s", r"\1.is_linetouched(", "curses"),# EXCEPTION
-    (r"\bis_wintouched\(%(arg)s", r"\1.is_wintouched(", "curses"),# EXCEPTION
+    (r"\bis_wintouched\(%(farg)s\)", r"\1.is_wintouched()", "curses"),# EXCEPTION
     (r"\bisendwin\(\)", r"curses.isendwin()", "curses"),
     #key_defined             key_defined(3X)*
     #key_name                 curs_util(3X)
@@ -304,8 +304,8 @@ funmappings = (
     #putwin                  curs_util(3X)
     (r"\bqiflush\(", r"curses.qiflush(", "curses"),
     (r"\braw\(", r"curses.raw(", "curses"),
-    (r"\bredrawwin\(%(arg)s", r"\1.redrawwin(", "curses"),	# EXCEPTION
-    (r"\brefresh\(", r"stdscr.refresh(", "curses"),
+    (r"\bredrawwin\(%(farg)s\)", r"\1.redrawwin()", "curses"),	# EXCEPTION
+    (r"\brefresh\(\)", r"stdscr.refresh()", "curses"),
     (r"\breset_prog_mode\(", r"curses.reset_prog_mode(", "curses"),
     (r"\breset_shell_mode\(", r"curses.reset_shell_mode(", "curses"),
     #resetty                 curs_kernel(3X)
@@ -318,52 +318,52 @@ funmappings = (
     #scr_init                curs_scr_dump(3X)
     #scr_restore             curs_scr_dump(3X)
     #scr_set                 curs_scr_dump(3X)
-    #                 scrl                    curs_scroll(3X)
-    #                 scroll                  curs_scroll(3X)
-    #                 scrollok                curs_outopts(3X)
-    #                 set_curterm             curs_terminfo(3X)
-    #                 set_term                curs_initscr(3X)
-    #                 setcchar                curs_getcchar(3X)
-    #                 setscrreg               curs_outopts(3X)
-    #                 setsyx                  curs_kernel(3X)
-    #                 setterm                 curs_terminfo(3X)
-    #                 setupterm               curs_terminfo(3X)
-    #                 slk_attr                curs_slk(3X)*
-    #                 slk_attr_off            curs_slk(3X)
-    #                 slk_attr_on             curs_slk(3X)
-    #                 slk_attr_set            curs_slk(3X)
-    #                 slk_attroff             curs_slk(3X)
-    #                 slk_attron              curs_slk(3X)
-    #                 slk_attrset             curs_slk(3X)
-    #                 slk_clear               curs_slk(3X)
-    #                 slk_color               curs_slk(3X)
-    #                 slk_init                curs_slk(3X)
-    #                 slk_label               curs_slk(3X)
-    #                 slk_noutrefresh         curs_slk(3X)
-    #                 slk_refresh             curs_slk(3X)
-    #                 slk_restore             curs_slk(3X)
-    #                 slk_set                 curs_slk(3X)
-    #                 slk_touch               curs_slk(3X)
-    #                 standend                curs_attr(3X)
-    #                 standout                curs_attr(3X)
-    #                 start_color             curs_color(3X)
-    #                 subpad                  curs_pad(3X)
-    #                 subwin                  curs_window(3X)
-    #                 syncok                  curs_window(3X)
-    #                 term_attrs              curs_termattrs(3X)
-    #                 termattrs               curs_termattrs(3X)
-    #                 termname                curs_termattrs(3X)
-    #                 tgetent                 curs_termcap(3X)
-    #                 tgetflag                curs_termcap(3X)
-    #                 tgetnum                 curs_termcap(3X)
-    #                 tgetstr                 curs_termcap(3X)
-    #                 tgoto                   curs_termcap(3X)
+    (r"\bscrl\(", r"stdscr.scroll(", "curses"),	# NONTRIVIAL
+    (r"\bscroll\(%(farg)s\)", r"\1.scroll(1)", "curses"),	# NONTRIVIAL
+    (r"\bscrollok\(%(arg)s", r"\1.scrollok(", "curses"),	# EXCEPTION
+    #set_curterm             curs_terminfo(3X)
+    #set_term                curs_initscr(3X)
+    #setcchar                curs_getcchar(3X)
+    (r"\bsetscrreg\(", r"stdscr.setscrreg(", "curses"),
+    (r"\bsetsyx\(", r"curses.setsyx(", "curses"),
+    #setterm                 curs_terminfo(3X)
+    (r"\bsetupterm\(", r"curses.setupterm(", "curses"),
+    #slk_attr                curs_slk(3X)*
+    #slk_attr_off            curs_slk(3X)
+    #slk_attr_on             curs_slk(3X)
+    #slk_attr_set            curs_slk(3X)
+    #slk_attroff             curs_slk(3X)
+    #slk_attron              curs_slk(3X)
+    #slk_attrset             curs_slk(3X)
+    #slk_clear               curs_slk(3X)
+    #slk_color               curs_slk(3X)
+    #slk_init                curs_slk(3X)
+    #slk_label               curs_slk(3X)
+    #slk_noutrefresh         curs_slk(3X)
+    #slk_refresh             curs_slk(3X)
+    #slk_restore             curs_slk(3X)
+    #slk_set                 curs_slk(3X)
+    #slk_touch               curs_slk(3X)
+    (r"\bstandend\(", r"stdscr.standend(", "curses"),
+    (r"\bstandout\(", r"stdscr.standout(", "curses"),
+    (r"\bstart_color\(", r"curses.start_color(", "curses"),
+    (r"\bsubpad\(%(arg)s", r"\1.subpad(", "curses"),	# EXCEPTION
+    (r"\bsubwin\(%(arg)s", r"\1.subwin(", "curses"),	# EXCEPTION
+    (r"\bsyncok\(%(arg)s", r"\1.syncok(", "curses"),	# EXCEPTION
+    #term_attrs              curs_termattrs(3X)
+    (r"\btermattrs\(", r"curses.termattrs(", "curses"),
+    (r"\btermname\(", r"curses.termname(", "curses"),
+    #tgetent                 curs_termcap(3X)
+    #tgetflag                curs_termcap(3X)
+    #tgetnum                 curs_termcap(3X)
+    #tgetstr                 curs_termcap(3X)
+    #tgoto                   curs_termcap(3X)
     (r"\btigetflag\(", r"curses.tigetflag(", "curses"),
     (r"\btigetnum\(", r"curses.tigetnum(", "curses"),
     (r"\btigetstr\(", r"curses.tigetstr(", "curses"),
-    #                 timeout                 curs_inopts(3X)
-    #                 touchline               curs_touch(3X)
-    #                 touchwin                curs_touch(3X)
+    (r"\btimeout\(", r"stdscr.timeout(", "curses"),
+    (r"\btouchline\(%(arg)s", r"\1.touchline(", "curses"),	# EXCEPTION
+    (r"\btouchwin\(%(farg)s\)", r"\1.touchwin()", "curses"),	# EXCEPTION
     #                 tparm                   curs_terminfo(3X)
     #                 tputs                   curs_termcap(3X)
     #                 tputs                   curs_terminfo(3X)
@@ -438,10 +438,10 @@ funmappings = (
     #                 winchnstr               curs_inchstr(3X)
     #                 winchstr                curs_inchstr(3X)
     #                 winnstr                 curs_instr(3X)
-    #                 winnwstr                curs_inwstr(3X)
-    #                 wins_nwstr              curs_ins_wstr(3X)
-    #                 wins_wch                curs_ins_wch(3X)
-    #                 wins_wstr               curs_ins_wstr(3X)
+    #winnwstr                curs_inwstr(3X)
+    #wins_nwstr              curs_ins_wstr(3X)
+    #wins_wch                curs_ins_wch(3X)
+    #wins_wstr               curs_ins_wstr(3X)
     #                 winsch                  curs_insch(3X)
     #                 winsdelln               curs_deleteln(3X)
     #                 winsertln               curs_deleteln(3X)
@@ -457,7 +457,7 @@ funmappings = (
     #                 wrefresh                curs_refresh(3X)
     #                 wresize                 wresize(3X)*
     #                 wscanw                  curs_scanw(3X)
-    #                 wscrl                   curs_scroll(3X)
+    (r"\bwscrl\(%(arg)s", r"\1.scroll(", "curses"),	# NINTRIVIAL
     #                 wsetscrreg              curs_outopts(3X)
     #                 wstandend               curs_attr(3X)
     #                 wstandout               curs_attr(3X)
@@ -466,7 +466,7 @@ funmappings = (
     #                 wtimeout                curs_inopts(3X)
     #                 wtouchln                curs_touch(3X)
     #                 wunctrl                 curs_util(3X)
-    #                 wvline                  curs_border(3X)
+    (r"\bwvline\(%(arg)s", r"\1.vline(", "curses"),	# NONTRIVIAL
     #wvline_set              curs_border_set(3X)
     # And this does the curses library constants
     (r"\bA_ATTRIBUTES\b", r"curses.A_ATTRIBUTES", "curses"),
