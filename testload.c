@@ -48,8 +48,6 @@ Python comments with # at the left margin.  Both comment delimiter lines
 should turn into # followed by a blank line.
 **************************************************************************/
 
-// The static keyword goes away.  void as a formal list is ignored.
-
 // Test enumeration processing
 typedef enum {
     IHR = 'R',
@@ -85,6 +83,8 @@ enum COLORS {
    BLACK, BLUE, GREEN, CYAN, RED, MAGENTA, BROWN, LIGHTGRAY,
    DARKGRAY, LIGHTBLUE, LIGHTGREEN, LIGHTCYAN, LIGHTRED, LIGHTMAGENTA, YELLOW, WHITE
 };
+
+// The static keyword goes away.  void as a formal list is ignored.
 
 static int randdevice(void)
 /* comment in this position should get indented to conform to Python usage */
