@@ -364,17 +364,17 @@ funmappings = (
     (r"\btimeout\(", r"stdscr.timeout(", "curses"),
     (r"\btouchline\(%(arg)s", r"\1.touchline(", "curses"),	# EXCEPTION
     (r"\btouchwin\(%(farg)s\)", r"\1.touchwin()", "curses"),	# EXCEPTION
-    #                 tparm                   curs_terminfo(3X)
-    #                 tputs                   curs_termcap(3X)
-    #                 tputs                   curs_terminfo(3X)
-    #                 trace                   curs_trace(3X)*
-    #                 typeahead               curs_inopts(3X)
-    #                 unctrl                  curs_util(3X)
-    #                 unget_wch               curs_get_wch(3X)
-    #                 ungetch                 curs_getch(3X)
-    #                 ungetmouse              curs_mouse(3X)*
-    #                 untouchwin              curs_touch(3X)
-    #                 use_default_colors      default_colors(3X)*
+    (r"\btparm\(", r"curses.tparm(", "curses"),
+    #tputs                   curs_termcap(3X)
+    #tputs                   curs_terminfo(3X)
+    #trace                   curs_trace(3X)*
+    (r"\btypeahead\(", r"curses.typeahead(", "curses"),
+    (r"\bunctrl\(", r"curses.unctrl(", "curses"),
+    #unget_wch               curs_get_wch(3X)
+    (r"\bungetch\(", r"curses.ungetch(", "curses"),
+    (r"\bungetmouse\(%(arg)s", r"\1.ungetmouse(", "curses"),	# False friend
+    (r"\buntouchwin\(%(farg)s\)", r"\1.untouchwin()", "curses"),
+    (r"\buse_default_colors\(", r"curses.use_default_colors(", "curses"),
     #                 use_env                 curs_util(3X)
     #                 use_extended_names      curs_extend(3X)*
     #                 vid_attr                curs_terminfo(3X)
@@ -383,11 +383,11 @@ funmappings = (
     #                 vidputs                 curs_terminfo(3X)
     #                 vline                   curs_border(3X)
     #                 vline_set               curs_border_set(3X)
-    #                 vw_printw               curs_printw(3X)
-    #                 vw_scanw                curs_scanw(3X)
-    #                 vwprintw                curs_printw(3X)
-    #                 vwscanw                 curs_scanw(3X)
-    #                 wadd_wch                curs_add_wch(3X)
+    #vw_printw               curs_printw(3X)
+    #vw_scanw                curs_scanw(3X)
+    #vwprintw                curs_printw(3X)
+    #vwscanw                 curs_scanw(3X)
+    #wadd_wch                curs_add_wch(3X)
     #                 wadd_wchnstr            curs_add_wchstr(3X)
     #                 wadd_wchstr             curs_add_wchstr(3X)
     #                 waddch                  curs_addch(3X)
@@ -465,7 +465,7 @@ funmappings = (
     #                 wsyncup                 curs_window(3X)
     #                 wtimeout                curs_inopts(3X)
     #                 wtouchln                curs_touch(3X)
-    #                 wunctrl                 curs_util(3X)
+    (r"\bwunctrl\(%(arg)s", r"\1.unctrl(", "curses"),	# NONTRIVIAL
     (r"\bwvline\(%(arg)s", r"\1.vline(", "curses"),	# NONTRIVIAL
     #wvline_set              curs_border_set(3X)
     # And this does the curses library constants
@@ -867,7 +867,8 @@ funmappings = (
 )
 
 falsefriends = (
-    "frexp", r"glob", r"ioctl", r"modf", "tcgetattr", r"tcsetattr",
+    r"frexp", r"glob", r"ioctl", r"modf", r"tcgetattr", r"tcsetattr",
+    r"ungetmouse",
     )
 
 # These have to be applied to the entire file without breaking it into regions
