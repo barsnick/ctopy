@@ -25,8 +25,12 @@ ctopy-$(VERS).tar.gz: $(SOURCES)
 	@tar -czf ctopy-$(VERS).tar.gz ctopy-$(VERS)
 	@rm -fr ctopy-$(VERS)
 
+clean:
+	rm -f *.html *.1 *.pyc SHIPPER.*
+
 dist: ctopy-$(VERS).tar.gz
 
 release: ctopy-$(VERS).tar.gz ctopy.html
-	shipper; rm -f CHANGES *.html *.lsm *.1
+	shipper -u -m -t; make clean
+
 
