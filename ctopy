@@ -1302,10 +1302,13 @@ if __name__ == "__main__":
 	elif (switch == '-t'):
             shorthands["type"] += r"|\b" + val + r"\b" 
 
-    code = sys.stdin.read()
-    if debug >= 2:
-        print "Input is: %s" % `code`
-    text = ctopy(code)
-    if debug:
-        print "Output:"
-    sys.stdout.write(text)
+    try:
+        code = sys.stdin.read()
+        if debug >= 2:
+            print "Input is: %s" % `code`
+        text = ctopy(code)
+        if debug:
+            print "Output:"
+        sys.stdout.write(text)
+    except KeyboardInterrupt:
+        pass
