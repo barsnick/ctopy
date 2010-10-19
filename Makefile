@@ -25,6 +25,15 @@ ctopy-$(VERS).tar.gz: $(SOURCES)
 	@tar -czf ctopy-$(VERS).tar.gz ctopy-$(VERS)
 	@rm -fr ctopy-$(VERS)
 
+makeregress:
+	ctopy <testload.c >ctopy.py
+
+regress:
+	@ctopy <testload.c >ctopy.py-trial
+	@if diff -u ctopy.py ctopy.py-trial; \
+	then echo "Test succeeded"; \
+	else echo "Test failed"; fi
+
 clean:
 	rm -f *.html *.1 *.pyc SHIPPER.*
 
