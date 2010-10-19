@@ -33,9 +33,10 @@ regress:
 	@if diff -u ctopy.py ctopy.py-trial; \
 	then echo "Test succeeded"; \
 	else echo "Test failed"; fi
+	@rm -f ctopy.py-trial
 
 clean:
-	rm -f *.html *.1 *.pyc SHIPPER.*
+	rm -f *.html *.1 *.pyc ctopy.py-trial SHIPPER.*
 
 dist: ctopy-$(VERS).tar.gz
 
