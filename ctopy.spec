@@ -1,5 +1,5 @@
 Name: ctopy
-Version: 1.0
+Version: 1.1
 Release: 1
 URL: http://www.catb.org/~esr/ctopy/
 Source0: %{name}-%{version}.tar.gz
@@ -38,6 +38,9 @@ cp ctopy.1 "$RPM_BUILD_ROOT"%{_mandir}/man1/
 %{_bindir}/ctopy
 
 %changelog
+* Tue Oct 18 2010 Eric S. Raymond <esr@snark.thyrsus.com> - 1.1-1
+- Add a regression test.
+
 * Wed Oct 18 2006 Eric S. Raymond <esr@snark.thyrsus.com> - 1.0-1
 - Initial build.
 
