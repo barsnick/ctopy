@@ -25,18 +25,23 @@ ctopy-$(VERS).tar.gz: $(SOURCES)
 	@tar -czf ctopy-$(VERS).tar.gz ctopy-$(VERS)
 	@rm -fr ctopy-$(VERS)
 
+pychecker:
+	ln -f ctopy ctopy.py
+	pychecker --only --limit 50 ctopy.py
+	rm -f ctopy.py
+
 makeregress:
-	ctopy <testload.c >ctopy.py
+	ctopy <testload.c >testload.py
 
 regress:
-	@ctopy <testload.c >ctopy.py-trial
-	@if diff -u ctopy.py ctopy.py-trial; \
+	@ctopy <testload.c >testload.py-trial
+	@if diff -u testload.py testload.py-trial; \
 	then echo "Test succeeded"; \
 	else echo "Test failed"; fi
-	@rm -f ctopy.py-trial
+	@rm -f testload.py-trial
 
 clean:
-	rm -f *.html *.1 *.pyc ctopy.py-trial SHIPPER.*
+	rm -f *.html *.1 *.pyc testload.py-trial SHIPPER.* typescript *.tar.gz
 
 dist: ctopy-$(VERS).tar.gz
 

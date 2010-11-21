@@ -1052,81 +1052,81 @@ def repeat_apply(transforms, text):
             break
     return text
 
-def ctopy(input):
+def ctopy(inputc):
     "Transform C to Python."
     if debug >= 2:
         print "Gathering hints"
-    hints = re.finditer(r"\$ctopy (.*)", input)
+    hints = re.finditer(r"\$ctopy (.*)", inputc)
     for hint in hints:
         process_hint(hint.group(1))
     if debug >= 2:
         print "Processing inline enums"
     global stringify
-    enums = re.finditer(r"enum[ \t]*{(.*)} (%(id)s)" % shorthands, input)
+    enums = re.finditer(r"enum[ \t]*{(.*)} (%(id)s)" % shorthands, inputc)
     for instance in enums:
         stringify += instance.group(1).replace(" ", "").split(",")
-        input = input[:instance.start(0)] + input[instance.start(2):]
+        inputc = inputc[:instance.start(0)] + inputc[instance.start(2):]
     if debug:
         print "Pre-transformations begin"
-    input = repeat_apply(file_transformations, input)
+    inputc = repeat_apply(file_transformations, inputc)
     if debug >= 2:
         print "After pre-transformations: %s" % `code`
     if debug:
         print "Region analysis begins"
     boundaries = [0]
     state = "text"
-    for i in range(len(input)):
+    for i in range(len(inputc)):
         if state == "text":
-            if input[i] == '"' and (i == 0 or input[i-1] != '\\'):
+            if inputc[i] == '"' and (i == 0 or inputc[i-1] != '\\'):
                 if debug >= 2:
                     print "String literal starts at %d" % i
                 boundaries.append(i)
                 state = "stringliteral"
-            elif input[i:i+2] == "/*":
+            elif inputc[i:i+2] == "/*":
                 if debug >= 2:
                     print "Closed comment starts at %d" % (i-1)
                 boundaries.append(i)
                 state = "closedcomment"
-            elif input[i:i+2] == "//":
+            elif inputc[i:i+2] == "//":
                 if debug >= 2:
                     print "Open comment starts at %d" % i
                 boundaries.append(i)
                 state = "opencomment"
-            elif input[i:].startswith("typedef enum {") or input[i:].startswith("enum {"):
+            elif inputc[i:].startswith("typedef enum {") or inputc[i:].startswith("enum {"):
                 if debug >= 2:
                     print "enumeration starts at %d" % i
-                if input[i-2:i+1] != 'f e':
+                if inputc[i-2:i+1] != 'f e':
                     boundaries.append(i)
-                boundaries.append(i + input[i:].find("enum") + 5)
-            elif input[i:].startswith("\n}"):
+                boundaries.append(i + inputc[i:].find("enum") + 5)
+            elif inputc[i:].startswith("\n}"):
                 if debug >= 2:
                     print "start-of-line brace at %d" % i
                 boundaries.append(i)
                 boundaries.append(i+2)
         elif state == "stringliteral":
-            if input[i] == '"' and (i == 0 or input[i-1] != '\\'):
+            if inputc[i] == '"' and (i == 0 or inputc[i-1] != '\\'):
                 if debug >= 2:
                     print "String ends at %d" % i
                 boundaries.append(i+1)
                 state = "text"
         elif state == "closedcomment":
-            if input[i:i+2] == "*/":
+            if inputc[i:i+2] == "*/":
                 if debug >= 2:
                     print "closed comment ends at %d" % (i+1)
                 boundaries.append(i+2)
                 state = "text"                
         elif state == "opencomment":
-            if input[i] == "\n":
+            if inputc[i] == "\n":
                 if debug >= 2:
                     print "Open comment ends at %d" % (i+1)
                 boundaries.append(i+1)
                 state = "text"
-    boundaries.append(len(input))
+    boundaries.append(len(inputc))
     if debug >= 2:
         print "Boundaries:", boundaries
     regions = []
     for i in range(len(boundaries)-1):
-        regions.append(input[boundaries[i]:boundaries[i+1]])
+        regions.append(inputc[boundaries[i]:boundaries[i+1]])
     regions = filter(lambda x: x != '', regions)
     if debug:
         print "Regexp transformation begins"
@@ -1205,9 +1205,9 @@ def ctopy(input):
                 if debug >= 2:
                     print "Doing post transformations"
                 regions[i] = single_apply(post_transformations, regions[i])
-                for str in stringify:
-                    regions[i] = re.sub(r"\b" + str + r"\b",
-                                        '"' + str + '"', regions[i])
+                for istr in stringify:
+                    regions[i] = re.sub(r"\b" + istr + r"\b",
+                                        '"' + istr + '"', regions[i])
     except IndexError:
         sys.stderr.write("ctopy: pathological string literal at %d.\n" % boundaries[i])
         raise SystemExit, 1
