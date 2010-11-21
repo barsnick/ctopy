@@ -38,6 +38,9 @@ cp ctopy.1 "$RPM_BUILD_ROOT"%{_mandir}/man1/
 %{_bindir}/ctopy
 
 %changelog
+* Sun Nov 21 2010 Eric S. Raymond <esr@snark.thyrsus.com> - 1.2-1
+- Add a pychecker check. 
+
 * Tue Oct 18 2010 Eric S. Raymond <esr@snark.thyrsus.com> - 1.1-1
 - Add a regression test.
 
