@@ -8,6 +8,7 @@ Group: Development
 Summary: a quick and dirty (but nevertheless effective) C to Python translator
 BuildRoot: %{_tmppath}/%{name}-root
 BuildArch: noarch
+#Destinations: freshmeat
 
 %description
 ctopy automates the parts of translating C source code to Python
