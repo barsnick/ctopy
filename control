@@ -1,0 +1,23 @@
+# This is not a real Debian control file, though the syntax is compatible.
+# It's project metadata for the shipper tool
+
+Package: ctopy
+
+Description: simpleminded but effective C to Python source-code translator
+ This tool automates the parts of translating C source code to Python
+ source code that are difficult for a human but easy for a
+ machine. This allows a human programmer to concentrate on the
+ nontrivial parts of the translation.
+
+#XBS-Gitorious-URL: https://gitorious.org/ascii
+
+XBS-Destinations: freecode
+
+Homepage: http://www.catb.org/~esr/ctopy
+
+XBS-HTML-Target: index.html
+
+XBS-Freecode-Tags: Python, C
+
+XBS-VC-Tag-Template: %(version)s
+
