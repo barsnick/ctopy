@@ -9,9 +9,11 @@ Description: simpleminded but effective C to Python source-code translator
  machine. This allows a human programmer to concentrate on the
  nontrivial parts of the translation.
 
-#XBS-Gitorious-URL: https://gitorious.org/ascii
+XBS-Repository-URL: http://thyrsus.com/gitweb/?p=ctopy.git
 
-XBS-Destinations: freecode
+XBS-Clone-From: git@thyrsus.com:ctopy
+
+#XBS-Destinations: freecode
 
 Homepage: http://www.catb.org/~esr/ctopy
 

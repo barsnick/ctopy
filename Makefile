@@ -41,11 +41,11 @@ regress:
 	@rm -f testload.py-trial
 
 clean:
-	rm -f *.html *.1 *.pyc testload.py-trial SHIPPER.* typescript *.tar.gz
+	rm -f *.html *.1 *.pyc testload.py-trial typescript *.tar.gz
 
 dist: ctopy-$(VERS).tar.gz
 
 release: ctopy-$(VERS).tar.gz ctopy.html
-	shipper -u -m -t; make clean
+	shipper version=$(VERS) | sh -e -x
 
 

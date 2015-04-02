@@ -10,6 +10,8 @@ Python library bindings are as of 2.6a0.
 """
 import sys, re
 
+version=0.1
+
 stringify = []
 
 printflike = ["printf", "sprintf", "vfprintf",
