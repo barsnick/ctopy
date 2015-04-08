@@ -3,23 +3,21 @@
 
 Package: ctopy
 
-Description: simpleminded but effective C to Python source-code translator
+Description: Simpleminded but effective C to Python source-code translator.
  This tool automates the parts of translating C source code to Python
  source code that are difficult for a human but easy for a
  machine. This allows a human programmer to concentrate on the
  nontrivial parts of the translation.
 
-XBS-Repository-URL: http://thyrsus.com/gitweb/?p=ctopy.git
-
-XBS-Clone-From: git@thyrsus.com:ctopy
-
-#XBS-Destinations: freecode
+#XBS-Destinations: freshcode
 
 Homepage: http://www.catb.org/~esr/ctopy
 
 XBS-HTML-Target: index.html
 
-XBS-Freecode-Tags: Python, C
+XBS-Repository-URL: http://thyrsus.com/gitweb/?p=ctopy.git
+
+#XBS-Project-Tags: Python, C
 
 XBS-VC-Tag-Template: %(version)s
 

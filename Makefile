@@ -1,12 +1,12 @@
 # Makefile for the ctopy project
 
-VERS=$(shell sed <ctopy.spec -n -e '/Version: \(.*\)/s//\1/p')
+VERS=1.3
 
 MANDIR=$(DESTDIR)/usr/share/man/man1
 BINDIR=$(DESTDIR)/usr/bin
 
-DOCS    = README COPYING ctopy.xml ctopy.1
-SOURCES = ctopy Makefile $(DOCS) ctopy.spec
+DOCS    = README COPYING NEWS ctopy.xml ctopy.1
+SOURCES = ctopy Makefile $(DOCS)
 
 all: ctopy-$(VERS).tar.gz
 
@@ -47,5 +47,8 @@ dist: ctopy-$(VERS).tar.gz
 
 release: ctopy-$(VERS).tar.gz ctopy.html
 	shipper version=$(VERS) | sh -e -x
+
+refresh: ctopy.html
+	shipper -N -w version=$(VERS) | sh -e -x
 
 
