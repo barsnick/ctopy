@@ -21,6 +21,8 @@ XBS-Developer-Clone: git@thyrsus.com:ctopy
 
 XBS-Anonymous-Clone: git://thyrsus.com/repositories/ctopy.git
 
+XBS-Logo: ctopy-logo.png
+
 #XBS-Project-Tags: Python, C
 
 XBS-VC-Tag-Template: %(version)s

@@ -5,7 +5,7 @@ VERS=1.3
 MANDIR=$(DESTDIR)/usr/share/man/man1
 BINDIR=$(DESTDIR)/usr/bin
 
-DOCS    = README COPYING NEWS ctopy.xml ctopy.1
+DOCS    = README COPYING NEWS ctopy.xml ctopy.1 ctopy-logo.png
 SOURCES = ctopy Makefile $(DOCS)
 
 all: ctopy-$(VERS).tar.gz
