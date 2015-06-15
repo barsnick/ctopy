@@ -131,7 +131,7 @@ updates and other resources.</para>
 </refsect1>
 
 <refsect1 id='bugs'><title>BUGS</title>
-<para></para>
+<para>It ought to translate structures to classes.</para>
 </refsect1>
 </refentry>
 
