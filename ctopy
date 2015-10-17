@@ -7,6 +7,8 @@ md5, popen2, pty, resource, sha, subprocess, syslog, time.  Some of these
 would need more elaborate machinery for method translation.
 
 Python library bindings are as of 2.6a0.
+
+SPDX-License-Identifier: BSD-2-clause
 """
 import sys, re
 
@@ -51,7 +53,7 @@ funmappings = (
     # Mappings marked "EXCEPTION" violate the convention that the C names
     # of window methods begin with 'w'. Mappings marked "NONTRIVIAL"
     # map a C entry point into a Python entry point with a different name,
-    # usually to throw away a length argument Python doesn't need or vecause
+    # usually to throw away a length argument Python doesn't need or because
     # the Python method handles a position as the first two arguments.
     (r"\bCOLOR_PAIR\(", "curses.color_pair(", "curses"),
     (r"\bPAIR_NUMBER\(", "curses.pair_number(", "curses"),
