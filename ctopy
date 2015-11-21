@@ -8,7 +8,7 @@ would need more elaborate machinery for method translation.
 
 Python library bindings are as of 2.6a0.
 
-SPDX-License-Identifier: BSD-2-clause
+SPDX-License-Identifier: BSD-2-Clause
 """
 import sys, re
 
