@@ -22,6 +22,7 @@ printflike = ["printf", "sprintf", "vfprintf",
 shorthands = {
     'id' : r"[a-zA-Z_][a-zA-Z0-9._]*",
     'exp' : r"[a-zA-Z0-9._\-+\*/]+",
+    'stringexp' : r'[a-zA-Z0-9._\-+\*/]+|"[^"]*"',	# Doesn't work right.
     'type' : r"\bvoid\b|\bint\b|\bbool\b|\bchar\b|\bshort\b|\bdouble\b|\blong\b|\bfloat\b|\btime_t\b|\bFILE\b|bWINDOW\b",
     'class' : r"\b__dummyclass__\b",
     'ind' : r"(\n[ \t]*)",		# Whitespace at start of line
@@ -963,6 +964,7 @@ post_transformations = (
     (r"#define\s+(%(id)s)\(([^)]*)\)\s+(.*\))", r"def \1(\2):\treturn \3"),
     (r"#define\s+(%(id)s)\(([^)]*)\)\s+([^(].*)", r"def \1(\2):\t\3"),
     # control structure
+    (r"\belse if *\((.*)\)(\s*{)?", r"elif \1:"),
     (r"\bif *\((.*)\)(\s*{)?", r"if \1:"),
     (r"\bwhile *\((.*)\)(\s*{)?", r"while \1:"), 
     (r"\bwhile 1:", r"while True:"),
@@ -986,12 +988,6 @@ post_transformations = (
     (r"\bfalse\b", r"False"),	# C99
     (r"\bTRUE\b", r"True"),	# pre-C99
     (r"\bFALSE\b", r"False"),	# pre-C99
-    # expression operations
-    (r" *\&\& *", r" and "),
-    (r" *\|\| *", r" or "),
-    (r"-\>", r"."),
-    (r"!(?!=) *", r"not "),
-    (r"(and|or) *\n", r"\1 \\\n"),
     # most common uses of address operator
     (r"return *&", r"return "),
     (r"= *&", r"= "),
@@ -1010,9 +1006,10 @@ post_transformations = (
     (r"\bputchar\(", r"stdout.write("),
     (r"\bgetchar\(\)", r"stdout.read(1)"),
     (r"\bstrlen\(", r"len("),
-    (r"\bstrcmp\((%(exp)s),\s*(%(exp)s)\)\s*==\s*0", r"\1 == \2"),
-    (r"\bstrcmp\((%(exp)s),\s*(%(exp)s)\)\s*!=\s*0", r"\1 != \2"),
-    (r"\bstrcpy\((%(exp)s),\s*(%(exp)s)\)", r"\1 = \2"),
+    (r"\b!strcmp\((%(stringexp)s),\s*(%(stringexp)s)\)", r"\1 == \2"),
+    (r"\bstrcmp\((%(stringexp)s),\s*(%(stringexp)s)\)\s*==\s*0", r"\1 == \2"),
+    (r"\bstrcmp\((%(stringexp)s),\s*(%(stringexp)s)\)\s*!=\s*0", r"\1 != \2"),
+    (r"\bstrcpy\((%(exp)s),\s*(%(stringexp)s)\)", r"\1 = \2"),
     # Python time library
     (r"\btime\(NULL\)", r"time.time()"),
     # well-known includes
@@ -1025,6 +1022,12 @@ post_transformations = (
     (r"#include \<regex.h\>\n", r"import re\n"),
     (r"#include \<curses.h\>\n", r"import curses\n"),
     (r"#include \<termios.h\>\n", r"import termios\n"),
+    # expression operations
+    (r" *\&\& *", r" and "),
+    (r" *\|\| *", r" or "),
+    (r"-\>", r"."),
+    (r"!(?!=) *", r"not "),
+    (r"(and|or) *\n", r"\1 \\\n"),
 )
 
 final_transformations = (
