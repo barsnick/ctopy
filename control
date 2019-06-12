@@ -15,11 +15,7 @@ Homepage: http://www.catb.org/~esr/ctopy
 
 XBS-HTML-Target: index.html
 
-XBS-Repository-URL: http://thyrsus.com/gitweb/?p=ctopy.git
-
-XBS-Developer-Clone: git@thyrsus.com:ctopy
-
-XBS-Anonymous-Clone: git://thyrsus.com/repositories/ctopy.git
+XBS-Repository-URL: https://gitlab.com/esr/ctopy
 
 XBS-Logo: ctopy-logo.png
 
