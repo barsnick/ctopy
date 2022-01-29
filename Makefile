@@ -1,6 +1,7 @@
 # Makefile for the ctopy project
 
-VERS=1.3
+# Keep synced with version in ctopy itself
+VERS=1.4
 
 MANDIR=$(DESTDIR)/usr/share/man/man1
 BINDIR=$(DESTDIR)/usr/bin
