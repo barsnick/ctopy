@@ -25,15 +25,13 @@ ctopy-$(VERS).tar.gz: $(SOURCES)
 	@tar -czf ctopy-$(VERS).tar.gz ctopy-$(VERS)
 	@rm -fr ctopy-$(VERS)
 
-pychecker:
-	ln -f ctopy ctopy.py
-	pychecker --only --limit 50 ctopy.py
-	rm -f ctopy.py
+pylint:
+	pylint --score=n ctopy
 
-makeregress:
+buildcheck:
 	ctopy <testload.c >testload.py
 
-regress:
+check:
 	@ctopy <testload.c >testload.py-trial
 	@if diff -u testload.py testload.py-trial; \
 	then echo "Test succeeded"; \

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 """
 ctopy -- a quick and dirty C-to-Python translator.
 
@@ -10,6 +10,10 @@ Python library bindings are as of 2.6a0.
 
 SPDX-License-Identifier: BSD-2-Clause
 """
+
+# pylint: disable=line-too-long,superfluous-parens,invalid-name,too-many-lines,fixme,redefined-outer-name,too-many-locals,global-statement,no-else-continue,no-else-break,too-many-nested-blocks
+
+# pylint: disable=multiple-imports
 import sys, re
 
 version=0.1
@@ -91,7 +95,7 @@ funmappings = (
     (r"\bbkgdset\(", r"stsdcr.bkgdset(", r"curses"),
     #bkgrnd                  curs_bkgrnd(3X)
     #bkgrndset               curs_bkgrnd(3X)
-    (r"\bborder\(", r"stdscr.border(", r"curses"), 
+    (r"\bborder\(", r"stdscr.border(", r"curses"),
     #border_set              curs_border_set(3X)
     (r"\bbox\(%(arg)s", r"\1.box(", r"curses"),		# EXCEPTION
     #box_set                 curs_border_set(3X)
@@ -920,7 +924,7 @@ repeat_transformations = (
     (r"(\n[ \t]*)(%(class)s)(\s*%(id)s)([;,])", r"\1\2\3 = \2()\4"),
     # Scalar-vars between a comma and a trailing semicolon go away.
     (r"(\n[ \t]*)((?:%(type)s).*)(,\s*%(id)s\s*);", r"\1\2;"),
-    # Class-Vars between comma and semicolon get a following initializer 
+    # Class-Vars between comma and semicolon get a following initializer
     (r"(\n[ \t]*)(%(class)s)(.*,\s)*(%(id)s)(\s*;)", r"\1\2\3\4 = \2()\5"),
     # Scalar-vars between commas in a declaration line go away.
     (r"(\n[ \t]*(?:%(type)s)\s+.*)(,\s*%(id)s)(,.*);", r"\1\3;"),
@@ -966,7 +970,7 @@ post_transformations = (
     # control structure
     (r"\belse if *\((.*)\)(\s*{)?", r"elif \1:"),
     (r"\bif *\((.*)\)(\s*{)?", r"if \1:"),
-    (r"\bwhile *\((.*)\)(\s*{)?", r"while \1:"), 
+    (r"\bwhile *\((.*)\)(\s*{)?", r"while \1:"),
     (r"\bwhile 1:", r"while True:"),
     (r"\bfor \(;;\)(\s*{)?", r"while True:"),
     (r"\bfor \((%(id)s) *= *0; *\1 *<= *([^;]+); *\1\+\+\)(\s*{)?",
@@ -981,7 +985,7 @@ post_transformations = (
     (r"(?:} )?else\s*{", r"else"),
     (r"(?<!#)else", r"else:"),
     (r"\bdo\s*{", r"while True:"),
-    (r"}\s*while\s*(\(.*\));", r"if not \1: break	# DO-WHILE TERMINATOR -- INDENTATION IS PROBABLY WRONG"), 
+    (r"}\s*while\s*(\(.*\));", r"if not \1: break	# DO-WHILE TERMINATOR -- INDENTATION IS PROBABLY WRONG"),
     (r"switch *\((.*)\)(\s*{)?", r"switch \1:"),# Not Python, but less ugly
     # constants
     (r"\btrue\b", r"True"),	# C99
@@ -997,7 +1001,7 @@ post_transformations = (
     (r"\+\+(%(id)s)([;\n])", r"\1 += 1\2"),
     (r"--(%(id)s)([;\n])", r"\1 -= 1\2"),
     # no-op voids
-    (r"\n[ \t]*\(void\)", r"\n"),  
+    (r"\n[ \t]*\(void\)", r"\n"),
     # C functions that turn into Python builtins
     (r"\batoi\(", r"int("),
     (r"\batof\(", r"float("),
@@ -1046,7 +1050,7 @@ def single_apply(transforms, text):
         # be used to recognize start of line.
         text = re.sub(fro % shorthands, to, "\n" + oldtext)[1:]
         if debug >= 2 and text != oldtext:
-            print "%s transforms '%s' to '%s'" % ((fro, to), `oldtext`, `text`)
+            print("%s transforms '%s' to '%s'" % ((fro, to), repr(oldtext), repr(text)))
     return text
 
 def repeat_apply(transforms, text):
@@ -1059,91 +1063,94 @@ def repeat_apply(transforms, text):
             break
     return text
 
+# pylint: disable=too-many-branches,too-many-statements.
 def ctopy(inputc):
     "Transform C to Python."
     if debug >= 2:
-        print "Gathering hints"
+        print("Gathering hints")
     hints = re.finditer(r"\$ctopy (.*)", inputc)
     for hint in hints:
         process_hint(hint.group(1))
     if debug >= 2:
-        print "Processing inline enums"
+        print("Processing inline enums")
     global stringify
     enums = re.finditer(r"enum[ \t]*{(.*)} (%(id)s)" % shorthands, inputc)
     for instance in enums:
         stringify += instance.group(1).replace(" ", "").split(",")
         inputc = inputc[:instance.start(0)] + inputc[instance.start(2):]
     if debug:
-        print "Pre-transformations begin"
+        print("Pre-transformations begin")
     inputc = repeat_apply(file_transformations, inputc)
     if debug >= 2:
-        print "After pre-transformations: %s" % `code`
+        print("After pre-transformations: %s" % repr(code))
     if debug:
-        print "Region analysis begins"
+        print("Region analysis begins")
     boundaries = [0]
     state = "text"
+    # pylint: disable=consider-using-enumerate
     for i in range(len(inputc)):
         if state == "text":
             if inputc[i] == '"' and (i == 0 or inputc[i-1] != '\\'):
                 if debug >= 2:
-                    print "String literal starts at %d" % i
+                    print("String literal starts at %d" % i)
                 boundaries.append(i)
                 state = "stringliteral"
             elif inputc[i:i+2] == "/*":
                 if debug >= 2:
-                    print "Closed comment starts at %d" % (i-1)
+                    print("Closed comment starts at %d" % (i-1))
                 boundaries.append(i)
                 state = "closedcomment"
             elif inputc[i:i+2] == "//":
                 if debug >= 2:
-                    print "Open comment starts at %d" % i
+                    print("Open comment starts at %d" % i)
                 boundaries.append(i)
                 state = "opencomment"
             elif inputc[i:].startswith("typedef enum {") or inputc[i:].startswith("enum {"):
                 if debug >= 2:
-                    print "enumeration starts at %d" % i
+                    print("enumeration starts at %d" % i)
                 if inputc[i-2:i+1] != 'f e':
                     boundaries.append(i)
                 boundaries.append(i + inputc[i:].find("enum") + 5)
             elif inputc[i:].startswith("\n}"):
                 if debug >= 2:
-                    print "start-of-line brace at %d" % i
+                    print("start-of-line brace at %d" % i)
                 boundaries.append(i)
                 boundaries.append(i+2)
         elif state == "stringliteral":
             if inputc[i] == '"' and (i == 0 or inputc[i-1] != '\\'):
                 if debug >= 2:
-                    print "String ends at %d" % i
+                    print("String ends at %d" % i)
                 boundaries.append(i+1)
                 state = "text"
         elif state == "closedcomment":
             if inputc[i:i+2] == "*/":
                 if debug >= 2:
-                    print "closed comment ends at %d" % (i+1)
+                    print("closed comment ends at %d" % (i+1))
                 boundaries.append(i+2)
-                state = "text"                
+                state = "text"
         elif state == "opencomment":
             if inputc[i] == "\n":
                 if debug >= 2:
-                    print "Open comment ends at %d" % (i+1)
+                    print("Open comment ends at %d" % (i+1))
                 boundaries.append(i+1)
                 state = "text"
     boundaries.append(len(inputc))
     if debug >= 2:
-        print "Boundaries:", boundaries
+        print("Boundaries:", boundaries)
     regions = []
     for i in range(len(boundaries)-1):
         regions.append(inputc[boundaries[i]:boundaries[i+1]])
-    regions = filter(lambda x: x != '', regions)
+    regions = [x for x in regions if x != '']
     if debug:
-        print "Regexp transformation begins"
+        print("Regexp transformation begins")
     if debug:
+        # pylint: disable=import-outside-toplevel
         import pprint
         pp = pprint.PrettyPrinter(indent=4)
-        print "Regions:"
+        print("Regions:")
         pp.pprint(regions)
     if debug >= 2:
-        print "Processing printf-like functions"
+        print("Processing printf-like functions")
     for (i, here) in enumerate(regions):
         if regions[i][0] != '"' or not "%" in here:
             continue
@@ -1171,11 +1178,12 @@ def ctopy(inputc):
             j += 1
     importlist = []
     try:
+        # pylint: disable=consider-using-enumerate
         for i in range(len(regions)):
             if regions[i][:2] == "/*":
                 if regions[i].count("\n") <= 1:		# winged comment
                     regions[i] = "#" + regions[i][2:-2]
-                elif re.search("/\*+\n", regions[i]):	# boxed comment
+                elif re.search(r"/\*+\n", regions[i]):	# boxed comment
                     regions[i] = re.sub(r"\n([ \t]*) \* ?", r"\n\1",regions[i])
                     regions[i] = re.sub(r"\n([ \t]*)\*", r"\n\1", regions[i])
                     regions[i] = re.sub(r"^([ \t]*)/\*+\n", r"\1#\n", regions[i])
@@ -1191,16 +1199,16 @@ def ctopy(inputc):
                 regions[i] = "#" + regions[i][2:]
             elif regions[i][0] != '"':
                 if debug >= 2:
-                    print "Doing pre transformations"
+                    print("Doing pre transformations")
                 regions[i] = single_apply(pre_transformations, regions[i])
                 if debug >= 2:
-                    print "Doing repeated transformations"
+                    print("Doing repeated transformations")
                 for (j, hack) in enumerate(repeat_transformations):
                     if debug >= 2:
-                        print "Repeat transformations group %d" % (j+1)
+                        print("Repeat transformations group %d" % (j+1))
                     regions[i] = repeat_apply(hack, regions[i])
                 if debug:
-                    print "Function and method mappings begin"
+                    print("Function and method mappings begin")
                 for (fro, to, module) in funmappings:
                     if re.search(fro, regions[i]):
                         regions[i] = re.sub(fro, to, regions[i])
@@ -1210,16 +1218,17 @@ def ctopy(inputc):
                     if re.search(r"\b" + name + r"\b\(", regions[i]):
                         sys.stderr.write("warning: %s calling conventions differ between C and Python." % name)
                 if debug >= 2:
-                    print "Doing post transformations"
+                    print("Doing post transformations")
                 regions[i] = single_apply(post_transformations, regions[i])
                 for istr in stringify:
                     regions[i] = re.sub(r"\b" + istr + r"\b",
                                         '"' + istr + '"', regions[i])
     except IndexError:
         sys.stderr.write("ctopy: pathological string literal at %d.\n" % boundaries[i])
-        raise SystemExit, 1
+        # pylint: disable=raise-missing-from
+        raise SystemExit(1)
     if debug:
-        "Enumeration processing"
+        print("Enumeration processing")
     state = "plain"
     for (i, region) in enumerate(regions):
         # first compute a parse state
@@ -1233,7 +1242,7 @@ def ctopy(inputc):
                 state = "plain"
         # now do something useful with it
         if debug >= 3:
-            print "Enumeration processing: state = %s, region = %s" % (state, `regions[i]`)
+            print("Enumeration processing: state = %s, region = %s" % (state, repr(regions[i])))
         if state in ("enum", "typedef"):
             if regions[i] == "enum ":
                 m = re.match("(%(id)s) {" % shorthands, regions[i+1])
@@ -1241,20 +1250,21 @@ def ctopy(inputc):
                     shorthands['type'] += "|" + m.group(1)
                     regions[i] = '# From enumerated type \'%s\'\n' % m.group(1)
                     regions[i+1] = regions[i+1][m.end(0)+1:]
-                else: 
+                else:
                     regions[i] = '# From anonymous enumerated type\n'
             elif regions[i] == "typedef enum ":
-                m = re.match("\s* (%(id)s)\s*;?" % shorthands, regions[i+3])
+                m = re.match(r"\s* (%(id)s)\s*;?" % shorthands, regions[i+3])
                 if m:
                     shorthands['type'] += "|" + m.group(1)
                     regions[i] = '# From enumerated type \'%s\'\n' % m.group(1)
                     regions[i+3] = regions[i+3][:m.start(0)] + "\n\n"
-                else: 
+                else:
                     regions[i] = '# From anonymous typedefed enum (?!)\n'
             else:
-                regions[i] = re.sub(",\s*", "\n", regions[i])
+                regions[i] = re.sub(r",\s*", "\n", regions[i])
                 val = 0
                 txt = regions[i].split("\n")
+                # pylint: disable=consider-using-enumerate
                 for j in range(len(txt)):
                     if txt[j] == '' or txt[j].startswith("{"):
                         pass
@@ -1263,13 +1273,13 @@ def ctopy(inputc):
                         val += 1
                 regions[i] = "\n".join(txt)
     if debug:
-        "Final transformations begin"
-    regions = map(lambda r: repeat_apply(final_transformations, r),regions)
+        print("Final transformations begin")
+    regions = [repeat_apply(final_transformations, r) for r in regions]
     text = "".join(regions)
     if importlist:
         importlist = "import " + ", ".join(importlist) + "\n"
         text = importlist + text
-    # Emit what we got.  Preserve imports in case this is a .h file 
+    # Emit what we got.  Preserve imports in case this is a .h file
     return text
 
 def process_hint(line):
@@ -1279,13 +1289,13 @@ def process_hint(line):
     else:
         global stringify, printflike
         if debug >= 2:
-            print "Hint: %s" % `line`
+            print("Hint: %s" % repr(line))
         lst = line.replace(",", " ").split()
         if lst[0] == "stringify":
             stringify += lst[1:]
         elif lst[0] == "type":
             for tok in lst[1:]:
-                shorthands["type"] += r"|\b" + tok + r"\b" 
+                shorthands["type"] += r"|\b" + tok + r"\b"
         elif lst[0] == "class":
             for tok in lst[1:]:
                 shorthands["class"] += r"|\b" + tok + r"\b"
@@ -1295,27 +1305,27 @@ def process_hint(line):
 if __name__ == "__main__":
     import getopt
     (options, arguments) = getopt.getopt(sys.argv[1:], "c:h:ds:t:")
-    debug = 0;
+    debug = 0
     for (switch, val) in options:
-	if (switch == '-c'):
+        if (switch == '-c'):
             shorthands["class"] += r"|\b" + val + r"\b"
-	elif (switch == '-d'):
-	    debug += 1
-	elif (switch == '-h'):
+        elif (switch == '-d'):
+            debug += 1
+        elif (switch == '-h'):
             for line in open(val):
                 process_hint(line)
-	elif (switch == '-s'):
+        elif (switch == '-s'):
             stringify.append(val)
-	elif (switch == '-t'):
-            shorthands["type"] += r"|\b" + val + r"\b" 
+        elif (switch == '-t'):
+            shorthands["type"] += r"|\b" + val + r"\b"
 
     try:
         code = sys.stdin.read()
         if debug >= 2:
-            print "Input is: %s" % `code`
+            print("Input is: %s" % repr(code))
         text = ctopy(code)
         if debug:
-            print "Output:"
+            print("Output:")
         sys.stdout.write(text)
     except KeyboardInterrupt:
         pass
