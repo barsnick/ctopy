@@ -891,7 +891,7 @@ file_transformations = (
     (r"enum\s+(%(id)s\s*){\s*",  r"enum \1{\n"),
     (r"enum\s+{\s*",  r"enum {\n"),
     (r"%(ind)s#\s*\$ctopy.*", r""),	# Make hints go away
-    (r"(?:int )?main\(int\s+argc,\s+char\s+\*argv\)\s*{",
+    (r"(?:int )?main\((\s*|void|int\s+argc,\s*char\s+\*argv)\)\s*{",
      "if __name__ == '__main__':"),
     )
 
