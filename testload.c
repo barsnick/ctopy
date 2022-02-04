@@ -147,7 +147,7 @@ event *unschedule(int evtype)
     return &game.future[evtype];
 }
 
-main(int argc, char *argv)
+main(int argc, char **argv)
 {
     intro();
     do {
